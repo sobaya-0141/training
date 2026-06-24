@@ -22,9 +22,6 @@ class TimerCuePlayer {
   Future<void> play(TimerCue cue) async {
     try {
       await initialize();
-      if (cue != TimerCue.countdown) {
-        await _countdownPlayer.stop();
-      }
       final player = switch (cue) {
         TimerCue.countdown => _countdownPlayer,
         TimerCue.start => _startPlayer,
