@@ -20,14 +20,16 @@ GitHub Issue または PR の番号を受け取り、コードベースを調査
 
 #### 1-1. Issue/PR の取得
 
-番号からIssueかPRかを自動判定する。
+まずIssueとして取得を試み、失敗したらPRとして取得する。
 
 ```bash
-# まずIssueとして取得を試みる
-gh issue view <番号> --json number,title,body,labels,state,comments,author,createdAt
-
-# 404なら PRとして取得
-gh pr view <番号> --json number,title,body,labels,state,files,comments,author,reviews,createdAt
+# Issueとして取得（失敗時は終了コード非0）
+if gh issue view <番号> --json number,title,body,labels,state,comments,author,createdAt 2>/dev/null; then
+  echo "Issue として取得成功"
+else
+  # PRとして取得
+  gh pr view <番号> --json number,title,body,labels,state,files,comments,author,reviews,createdAt
+fi
 ```
 
 #### 1-2. コメント・議論の確認
@@ -54,7 +56,7 @@ IssueテンプレートやラベルからIssueの種別を判定する:
 ### Phase 2: コードベース調査
 
 要望の内容に基づいて、関連するコードを調査する。
-Explore サブエージェントを活用して並列に調査を進める。
+利用可能な場合はサブエージェントを活用して並列に調査を進めると効率的。
 
 #### 調査観点
 

@@ -81,39 +81,32 @@ void main() {
   - `pumpWidget` でウィジェット構築 → `find` で要素確認 → `tap`/`enterText` で操作
 - **ロジックテスト**: Cubit・サービスの振る舞い検証
   - 純粋なDartクラスのメソッド呼び出しと結果確認
-  - `bloc_test` パッケージが使える場合は `blocTest()` を活用
 
 ### Cubit テスト例
 
+`test/timer_cubit_test.dart` のように `test()` + `expect()` でCubitの状態遷移を検証する。
+
 ```dart
-import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kintore/src/training/state/training_cubit.dart';
+import 'package:kintore/src/features/timer/timer_cubit.dart';
 
 void main() {
-  group('TrainingCubit', () {
-    late TrainingCubit cubit;
+  group('TrainingTimerCubit', () {
+    test('運動フェーズ中にskipすると休憩フェーズに進む', () {
+      final cubit = TrainingTimerCubit(
+        workSeconds: 20,
+        restSeconds: 10,
+        roundTitles: const ['種目1', '種目2'],
+      );
 
-    setUp(() {
-      cubit = TrainingCubit();
-    });
+      cubit.startOrPause(); // preparing
+      cubit.skip();         // work
+      cubit.skip();         // rest
 
-    tearDown(() {
+      expect(cubit.state.phase, TimerPhase.rest);
+      expect(cubit.state.remainingSeconds, 10);
       cubit.close();
     });
-
-    test('initial state is correct', () {
-      expect(cubit.state, const TrainingState());
-    });
-
-    blocTest<TrainingCubit, TrainingState>(
-      'emits updated state when startTraining is called',
-      build: () => TrainingCubit(),
-      act: (cubit) => cubit.startTraining(),
-      expect: () => [
-        isA<TrainingState>().having((s) => s.isRunning, 'isRunning', true),
-      ],
-    );
   });
 }
 ```

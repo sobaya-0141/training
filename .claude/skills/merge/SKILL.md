@@ -31,11 +31,14 @@ git status --short
 
 - 未コミットの変更がある場合は中断し、先にコミットするよう促す
 
-### 2. main に切り替え
+### 2. main に切り替え & 最新化
 
 ```bash
 git checkout main
+git pull --ff-only
 ```
+
+- `--ff-only` で fast-forward できない場合（リモートが diverge している等）は中断してユーザーに報告する
 
 ### 3. マージ (--no-ff)
 

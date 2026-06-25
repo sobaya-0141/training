@@ -56,12 +56,13 @@ class MyScreenFooter extends StatelessWidget { ... }
 ### Cubit パターン
 
 ```dart
-class TrainingCubit extends Cubit<TrainingState> {
-  TrainingCubit() : super(const TrainingState());
+class TrainingTimerCubit extends Cubit<TrainingTimerState> {
+  TrainingTimerCubit({required this.workSeconds, ...})
+      : super(TrainingTimerState(/* 初期値 */));
 
-  void startTraining() {
+  void startOrPause() {
     // Command (Path B)
-    emit(state.copyWith(/* ... */));
+    emit(state.copyWith(phase: TimerPhase.preparing));
   }
 }
 ```
@@ -77,14 +78,21 @@ class TrainingCubit extends Cubit<TrainingState> {
 ### feature-first 構造
 
 ```
-lib/src/<feature>/
+lib/src/features/<feature>/
 ├── <feature>_screen.dart           # 画面Widget
-├── state/
-│   ├── <feature>_state.dart        # Equatable state classes
-│   └── <feature>_cubit.dart        # Cubit
+├── <feature>_cubit.dart            # Cubit + State
 └── widgets/
     ├── <component_a>.dart          # 独立Widget
     └── <component_b>.dart
+```
+
+実際の例（`lib/src/features/timer/`）:
+```
+lib/src/features/timer/
+├── timer_screen.dart
+├── timer_cubit.dart        # TrainingTimerCubit / TrainingTimerState
+├── timer_cue_player.dart
+└── (widgets/ は必要に応じて追加)
 ```
 
 ### 命名規約
