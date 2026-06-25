@@ -1,6 +1,6 @@
 ---
 name: self-review
-description: タスク完了前のセルフレビュー。Claude subagentで別コンテキストから客観的にコード変更を検証。
+description: タスク完了前のセルフレビュー。利用可能なレビューツールまたは自己レビューでコード変更を検証。
 ---
 
 # Self Review
@@ -89,16 +89,16 @@ git diff --stat HEAD | tail -1
 | 変更規模 | 行数目安 | レビュー方法 |
 |---------|---------|-------------|
 | 小 | ~30行 | 自己レビューのみ（subagent不要） |
-| 中 | 31-100行 | code-reviewer サブエージェント |
-| 大 | 100行以上 | code-reviewer サブエージェント + 詳細分析 |
+| 中 | 31-100行 | 利用可能ならレビューツール/サブエージェント、なければ自己レビュー |
+| 大 | 100行以上 | 利用可能ならレビューツール/サブエージェント + 詳細分析、なければ自己レビュー |
 
 ## 出力テンプレート
 
 ```markdown
 ## Self Review Result
 
-### Claude subagent Review
-[code-reviewer サブエージェントからの出力]
+### Review
+[レビューツール/サブエージェントの出力、または自己レビュー結果]
 
 ### 判定: [PASS/MINOR/FAIL]
 
