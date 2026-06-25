@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_screen.dart';
 
 void main() {
@@ -9,14 +11,23 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final cubit = TrainingTimerCubit(
+      workSeconds: 30,
+      restSeconds: 0,
+      roundTitles: const ['タイマー'],
+    );
+    addTearDown(cubit.close);
+
     await tester.pumpWidget(
-      MaterialApp(home: TimerScreen.simple(title: 'テスト', seconds: 30)),
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const TimerBody()),
+      ),
     );
 
     final progress = tester.widget<CircularProgressIndicator>(
       find.byType(CircularProgressIndicator),
     );
-    expect(progress.value, 0);
+    expect(progress.value, 0.0);
 
     expect(
       find.byKey(const ValueKey('start_pause_timer_button')),

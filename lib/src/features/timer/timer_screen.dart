@@ -213,8 +213,8 @@ class TimerBody extends StatelessWidget {
                     children: [
                       CircularProgressIndicator(
                         value: switch (state.phase) {
-                          TimerPhase.ready => 0,
-                          TimerPhase.completed => 1,
+                          TimerPhase.ready => 0.0,
+                          TimerPhase.completed => 1.0,
                           _ => null,
                         },
                         strokeWidth: 18,
