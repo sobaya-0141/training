@@ -95,9 +95,9 @@ const workoutSchedule = <int, DailyWorkout>{
       ),
       WorkoutItem.interval(
         name: 'バーンマシン',
-        summary: '10秒 × 10セット',
+        summary: '10秒 × 10セット（休憩50秒）',
         workSeconds: 10,
-        restSeconds: 0,
+        restSeconds: 50,
         rounds: 10,
       ),
       WorkoutItem.interval(
