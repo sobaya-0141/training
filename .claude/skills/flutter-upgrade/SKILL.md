@@ -72,7 +72,7 @@ flutter pub outdated
 ## Flutter X.Y.Z アップグレード対応リスト
 
 ### 必須（アップグレードに必要）
-1. Flutter SDK を X.Y.Z に更新 (`flutter upgrade` または FVM/mise で切り替え)
+1. Flutter SDK を X.Y.Z に更新 (`flutter upgrade` またはバージョン管理ツールで切り替え)
 2. `flutter pub get`
 3. `dart analyze` → `flutter test`
 4. [Breaking Changes で必要な修正があればここに]
@@ -99,8 +99,8 @@ flutter pub outdated
 # flutter upgrade で最新安定版に更新
 flutter upgrade
 
-# 特定バージョンに切り替える場合は FVM や mise を使う
-# fvm use X.Y.Z
+# 特定バージョンに切り替える場合はプロジェクトのバージョン管理ツールに従う
+# 例: fvm use X.Y.Z
 ```
 
 ### 4-2. ビルド・テスト

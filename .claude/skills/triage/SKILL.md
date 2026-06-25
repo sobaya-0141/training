@@ -20,15 +20,16 @@ GitHub Issue または PR の番号を受け取り、コードベースを調査
 
 #### 1-1. Issue/PR の取得
 
-まずIssueとして取得を試み、失敗したらPRとして取得する。
+まずPRとして取得を試み、失敗したらIssueとして取得する。
+（`gh issue view` はPR番号でも成功するため、PR判定を先に行う必要がある）
 
 ```bash
-# Issueとして取得（失敗時は終了コード非0）
-if gh issue view <番号> --json number,title,body,labels,state,comments,author,createdAt 2>/dev/null; then
-  echo "Issue として取得成功"
+# PRとして取得（失敗時は終了コード非0）
+if gh pr view <番号> --json number,title,body,labels,state,files,comments,author,reviews,createdAt 2>/dev/null; then
+  echo "PR として取得成功"
 else
-  # PRとして取得
-  gh pr view <番号> --json number,title,body,labels,state,files,comments,author,reviews,createdAt
+  # Issueとして取得
+  gh issue view <番号> --json number,title,body,labels,state,comments,author,createdAt
 fi
 ```
 
