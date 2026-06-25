@@ -12,7 +12,7 @@ Flutter SDKの新バージョンへのアップグレードを体系的に進め
 
 ### 1-1. リリースノート調査
 
-WebSearch / WebFetch で以下を調査する:
+ブラウザ、公式サイト、または `curl` など利用可能な手段で以下を調査する:
 
 - **Hotfix Issue**: `https://github.com/flutter/flutter/issues` で `[stable] [hotfix] Flutter Release Version X.Y.Z` を検索
 - **Release Notes**: `https://docs.flutter.dev/release/release-notes/release-notes-X.Y.0`
