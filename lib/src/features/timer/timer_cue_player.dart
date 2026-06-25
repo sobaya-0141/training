@@ -13,9 +13,9 @@ class TimerCuePlayer {
     if (_initialized) return;
     _initialized = true;
     await Future.wait([
-      _prepare(_countdownPlayer, 'audio/countdown.wav'),
-      _prepare(_startPlayer, 'audio/start.wav'),
-      _prepare(_stopPlayer, 'audio/stop.wav'),
+      _prepare(_countdownPlayer, 'audio/countdown.mp3'),
+      _prepare(_startPlayer, 'audio/start.mp3'),
+      _prepare(_stopPlayer, 'audio/stop.mp3'),
     ]);
   }
 
