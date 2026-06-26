@@ -79,7 +79,13 @@ const workoutSchedule = <int, DailyWorkout>{
         sets: 3,
         sides: 2,
       ),
-      WorkoutItem.counter(name: 'シャドー', summary: '5ラウンド', reps: 1, sets: 5),
+      WorkoutItem.interval(
+        name: 'シャドー',
+        summary: '2分 × 5R（休憩30秒）',
+        workSeconds: 120,
+        restSeconds: 30,
+        rounds: 5,
+      ),
     ],
   ),
   DateTime.wednesday: DailyWorkout(
