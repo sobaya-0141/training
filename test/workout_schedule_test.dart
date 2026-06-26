@@ -50,6 +50,19 @@ void main() {
       expect(burnMachine.rounds, 10);
     });
 
+    test('水曜日にシャドー5ラウンドを含める', () {
+      final workout = workoutForDate(DateTime(2026, 6, 17));
+      final shadow = workout.items.last;
+
+      expect(workout.items, hasLength(4));
+      expect(shadow.name, 'シャドー');
+      expect(shadow.kind, WorkoutKind.interval);
+      expect(shadow.summary, '2分 × 5R（休憩30秒）');
+      expect(shadow.workSeconds, 120);
+      expect(shadow.restSeconds, 30);
+      expect(shadow.rounds, 5);
+    });
+
     test('木曜日はサーキットと30秒ラッシュを返す', () {
       final workout = workoutForDate(DateTime(2026, 6, 18));
 

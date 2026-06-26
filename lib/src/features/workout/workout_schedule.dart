@@ -113,6 +113,13 @@ const workoutSchedule = <int, DailyWorkout>{
         restSeconds: 50,
         rounds: 8,
       ),
+      WorkoutItem.interval(
+        name: 'シャドー',
+        summary: '2分 × 5R（休憩30秒）',
+        workSeconds: 120,
+        restSeconds: 30,
+        rounds: 5,
+      ),
     ],
   ),
   DateTime.thursday: DailyWorkout(
