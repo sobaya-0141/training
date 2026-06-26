@@ -66,4 +66,65 @@ void main() {
     );
     expect(progress.value, 0.0);
   });
+
+  testWidgets('サーキットは開始前に全ての種目を表示する', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final cubit = TrainingTimerCubit(
+      workSeconds: 20,
+      restSeconds: 10,
+      roundTitles: const ['種目1 セット 1 / 1', '種目2 セット 1 / 1'],
+    );
+    addTearDown(() async {
+      if (!cubit.isClosed) {
+        await cubit.close();
+      }
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(
+          value: cubit,
+          child: const TimerBody(previewExercises: ['種目1', '種目2']),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('exercise_preview_list')), findsOneWidget);
+    expect(find.text('1. 種目1'), findsOneWidget);
+    expect(find.text('2. 種目2'), findsOneWidget);
+  });
+
+  testWidgets('サーキットの種目一覧は開始後に非表示になる', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final cubit = TrainingTimerCubit(
+      workSeconds: 20,
+      restSeconds: 10,
+      roundTitles: const ['種目1 セット 1 / 1', '種目2 セット 1 / 1'],
+    );
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(
+          value: cubit,
+          child: const TimerBody(previewExercises: ['種目1', '種目2']),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('start_pause_timer_button')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('exercise_preview_list')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('start_pause_timer_button')));
+    await tester.pump();
+  });
 }
