@@ -13,6 +13,7 @@ class TimerScreen extends StatefulWidget {
     required this.workSeconds,
     required this.restSeconds,
     required this.roundTitles,
+    this.previewExercises = const [],
     this.date,
     this.itemIndex,
     this.repository,
@@ -66,6 +67,7 @@ class TimerScreen extends StatefulWidget {
           for (final exercise in item.circuitExercises)
             '$exercise　セット $set / ${item.rounds}',
       ],
+      previewExercises: item.circuitExercises,
       date: date,
       itemIndex: itemIndex,
       repository: repository,
@@ -77,6 +79,7 @@ class TimerScreen extends StatefulWidget {
   final int workSeconds;
   final int restSeconds;
   final List<String> roundTitles;
+  final List<String> previewExercises;
   final DateTime? date;
   final int? itemIndex;
   final WorkoutProgressRepository? repository;
@@ -160,7 +163,7 @@ class _TimerScreenState extends State<TimerScreen> {
               ),
             );
           },
-          child: const TimerBody(),
+          child: TimerBody(previewExercises: widget.previewExercises),
         ),
       ),
     );
@@ -168,7 +171,9 @@ class _TimerScreenState extends State<TimerScreen> {
 }
 
 class TimerBody extends StatelessWidget {
-  const TimerBody({super.key});
+  const TimerBody({this.previewExercises = const [], super.key});
+
+  final List<String> previewExercises;
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +181,8 @@ class TimerBody extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<TrainingTimerCubit>();
         final colors = Theme.of(context).colorScheme;
+        final showsExercisePreview =
+            state.phase == TimerPhase.ready && previewExercises.isNotEmpty;
         final phaseColor = switch (state.phase) {
           TimerPhase.rest => colors.tertiary,
           TimerPhase.preparing => Colors.orange,
@@ -206,38 +213,55 @@ class TimerBody extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const Spacer(),
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CircularProgressIndicator(
-                        value: switch (state.phase) {
-                          TimerPhase.ready => 0.0,
-                          TimerPhase.completed => 1.0,
-                          TimerPhase.paused => _pausedProgress(state, cubit),
-                          _ => null,
-                        },
-                        strokeWidth: 18,
-                        color: phaseColor,
-                        backgroundColor: phaseColor.withValues(alpha: 0.15),
-                      ),
-                      Center(
-                        child: Text(
-                          formatSeconds(state.remainingSeconds),
-                          key: const ValueKey('timer_count_label'),
-                          style: const TextStyle(
-                            fontSize: 72,
-                            fontWeight: FontWeight.w900,
-                            fontFeatures: [FontFeature.tabularFigures()],
+                if (showsExercisePreview) ...[
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _ExercisePreview(exercises: previewExercises),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    formatSeconds(state.remainingSeconds),
+                    key: const ValueKey('timer_count_label'),
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ] else ...[
+                  const Spacer(),
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: switch (state.phase) {
+                            TimerPhase.ready => 0.0,
+                            TimerPhase.completed => 1.0,
+                            TimerPhase.paused => _pausedProgress(state, cubit),
+                            _ => null,
+                          },
+                          strokeWidth: 18,
+                          color: phaseColor,
+                          backgroundColor: phaseColor.withValues(alpha: 0.15),
+                        ),
+                        Center(
+                          child: Text(
+                            formatSeconds(state.remainingSeconds),
+                            key: const ValueKey('timer_count_label'),
+                            style: const TextStyle(
+                              fontSize: 72,
+                              fontWeight: FontWeight.w900,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const Spacer(),
+                  const Spacer(),
+                ],
                 Text(
                   'ラウンド ${state.roundIndex + 1} / ${state.totalRounds}',
                   key: const ValueKey('round_count_label'),
@@ -279,6 +303,75 @@ class TimerBody extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ExercisePreview extends StatelessWidget {
+  const _ExercisePreview({required this.exercises});
+
+  final List<String> exercises;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('exercise_preview_list'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'この順番で進みます',
+            style: TextStyle(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (index, exercise) in exercises.indexed)
+                    _ExercisePreviewChip(index: index + 1, exercise: exercise),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExercisePreviewChip extends StatelessWidget {
+  const _ExercisePreviewChip({required this.index, required this.exercise});
+
+  final int index;
+  final String exercise;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Text(
+        '$index. $exercise',
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
