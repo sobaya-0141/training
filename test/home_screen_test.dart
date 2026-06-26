@@ -10,7 +10,12 @@ void main() {
 
     expect(find.text('6月16日・火曜日'), findsOneWidget);
     expect(find.text('ハイキック'), findsOneWidget);
-    expect(find.byKey(const ValueKey('quick_timer_30_button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick_timer_30_button')), findsNothing);
+    expect(find.byKey(const ValueKey('quick_timer_60_button')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('quick_timer_180_button')),
+      findsOneWidget,
+    );
     expect(
       find.byKey(const ValueKey('quick_timer_600_button')),
       findsOneWidget,

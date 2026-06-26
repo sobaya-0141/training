@@ -4,7 +4,7 @@ import 'package:kintore/src/features/timer/timer_screen.dart';
 class QuickTimers extends StatelessWidget {
   const QuickTimers({super.key});
 
-  static const timers = [('30秒', 30), ('1分', 60), ('3分', 180), ('10分', 600)];
+  static const timers = [('3分', 180), ('10分', 600)];
 
   @override
   Widget build(BuildContext context) {

@@ -24,6 +24,7 @@ void main() {
       ),
     );
 
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
     final progress = tester.widget<CircularProgressIndicator>(
       find.byType(CircularProgressIndicator),
     );
@@ -33,5 +34,36 @@ void main() {
       find.byKey(const ValueKey('start_pause_timer_button')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('一時停止中はタイマーのプログレスが回らない', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final cubit = TrainingTimerCubit(
+      workSeconds: 30,
+      restSeconds: 0,
+      roundTitles: const ['タイマー'],
+    );
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const TimerBody()),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('start_pause_timer_button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('start_pause_timer_button')));
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    final progress = tester.widget<CircularProgressIndicator>(
+      find.byType(CircularProgressIndicator),
+    );
+    expect(progress.value, 0.0);
   });
 }
