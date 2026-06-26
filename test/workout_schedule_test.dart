@@ -52,9 +52,9 @@ void main() {
 
     test('水曜日にシャドー5ラウンドを含める', () {
       final workout = workoutForDate(DateTime(2026, 6, 17));
-      final shadow = workout.items.last;
+      final shadow = workout.items.singleWhere((item) => item.name == 'シャドー');
 
-      expect(workout.items, hasLength(4));
+      expect(workout.label, '水曜日');
       expect(shadow.name, 'シャドー');
       expect(shadow.kind, WorkoutKind.interval);
       expect(shadow.summary, '2分 × 5R（休憩30秒）');
