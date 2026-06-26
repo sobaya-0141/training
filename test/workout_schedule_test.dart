@@ -39,6 +39,17 @@ void main() {
       expect(shadow.rounds, 5);
     });
 
+    test('バーンマシンはセット間に休憩を入れる', () {
+      final workout = workoutForDate(DateTime(2026, 6, 17));
+      final burnMachine = workout.items[1];
+
+      expect(burnMachine.name, 'バーンマシン');
+      expect(burnMachine.summary, '10秒 × 10セット（休憩50秒）');
+      expect(burnMachine.workSeconds, 10);
+      expect(burnMachine.restSeconds, 50);
+      expect(burnMachine.rounds, 10);
+    });
+
     test('木曜日はサーキットと30秒ラッシュを返す', () {
       final workout = workoutForDate(DateTime(2026, 6, 18));
 

@@ -61,9 +61,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/audio/countdown.wav
-    - assets/audio/start.wav
-    - assets/audio/stop.wav
+    - assets/audio/countdown.mp3
+    - assets/audio/start.mp3
+    - assets/audio/stop.mp3
 
   # To add assets to your application, add an assets section, like this:
   # assets:
