@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kintore/src/features/workout/workout_models.dart';
 import 'package:kintore/src/features/workout/workout_schedule.dart';
 
 void main() {
@@ -24,6 +25,18 @@ void main() {
       expect(highKick.sets, 3);
       expect(highKick.sides, 2);
       expect(highKick.reps * highKick.totalSets, 60);
+    });
+
+    test('シャドーは2分運動と30秒休憩のタイマー種目にする', () {
+      final workout = workoutForDate(DateTime(2026, 6, 16));
+      final shadow = workout.items[3];
+
+      expect(shadow.name, 'シャドー');
+      expect(shadow.kind, WorkoutKind.interval);
+      expect(shadow.summary, '2分 × 5R（休憩30秒）');
+      expect(shadow.workSeconds, 120);
+      expect(shadow.restSeconds, 30);
+      expect(shadow.rounds, 5);
     });
 
     test('木曜日はサーキットと30秒ラッシュを返す', () {
