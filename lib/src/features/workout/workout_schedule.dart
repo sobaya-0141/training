@@ -9,6 +9,14 @@ const circuitExercises = [
   '縄跳び',
 ];
 
+const shadow5Rounds = WorkoutItem.interval(
+  name: 'シャドー',
+  summary: '2分 × 5R（休憩30秒）',
+  workSeconds: 120,
+  restSeconds: 30,
+  rounds: 5,
+);
+
 const workoutSchedule = <int, DailyWorkout>{
   DateTime.monday: DailyWorkout(
     weekday: DateTime.monday,
@@ -79,13 +87,7 @@ const workoutSchedule = <int, DailyWorkout>{
         sets: 3,
         sides: 2,
       ),
-      WorkoutItem.interval(
-        name: 'シャドー',
-        summary: '2分 × 5R（休憩30秒）',
-        workSeconds: 120,
-        restSeconds: 30,
-        rounds: 5,
-      ),
+      shadow5Rounds,
     ],
   ),
   DateTime.wednesday: DailyWorkout(
@@ -113,13 +115,7 @@ const workoutSchedule = <int, DailyWorkout>{
         restSeconds: 50,
         rounds: 8,
       ),
-      WorkoutItem.interval(
-        name: 'シャドー',
-        summary: '2分 × 5R（休憩30秒）',
-        workSeconds: 120,
-        restSeconds: 30,
-        rounds: 5,
-      ),
+      shadow5Rounds,
     ],
   ),
   DateTime.thursday: DailyWorkout(
