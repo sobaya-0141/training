@@ -212,7 +212,11 @@ class TimerBody extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       CircularProgressIndicator(
-                        value: state.isComplete ? 1 : null,
+                        value: switch (state.phase) {
+                          TimerPhase.ready => 0.0,
+                          TimerPhase.completed => 1.0,
+                          _ => null,
+                        },
                         strokeWidth: 18,
                         color: phaseColor,
                         backgroundColor: phaseColor.withValues(alpha: 0.15),
