@@ -1,17 +1,26 @@
-# kintore
+# Kintore
 
-A new Flutter project.
+Kintore は、曜日別のトレーニングメニュー、カウンター、インターバルタイマー、進捗記録を扱う Flutter アプリです。
 
-## Getting Started
+開発基盤は [ymm-oss/flutter-mobile-project-template](https://github.com/ymm-oss/flutter-mobile-project-template) を参考に、単一アプリ向けに軽量化して整備しています。
 
-This project is a starting point for a Flutter application.
+## 開発
 
-A few resources to get you started if this is your first Flutter project:
+```sh
+flutter pub get
+flutter run
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 品質チェック
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+scripts/check.sh
+```
+
+## ドキュメント
+
+- [開発環境のセットアップ](docs/GET_STARTED.md)
+- [アーキテクチャ](docs/ARCHITECTURE.md)
+- [ブランチ運用](docs/BRANCH.md)
+- [CI](docs/CI.md)
+- [PR ガイドライン](docs/PR_GUIDELINES.md)

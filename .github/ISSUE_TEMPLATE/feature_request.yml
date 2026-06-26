@@ -1,0 +1,26 @@
+name: Feature Request
+description: 機能追加や改善の要望
+title: "[Feature]: "
+labels: ["feature", "triage"]
+body:
+  - type: checkboxes
+    attributes:
+      label: 既存 Issue の確認
+      description: 同じ内容の Issue がないか確認してください。
+      options:
+        - label: 既存の Issue はありませんでした
+          required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景
+      description: 何を解決したいか、なぜ必要かを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案
+      description: 期待する挙動や実装要件を書いてください。
+    validations:
+      required: true
