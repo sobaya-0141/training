@@ -6,6 +6,7 @@ import 'package:kintore/src/features/counter/counter_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/utils/format.dart';
 
 class CounterScreen extends StatelessWidget {
   const CounterScreen({
@@ -200,7 +201,7 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
             SizedBox(
               width: 62,
               child: Text(
-                remaining == null ? '--:--' : _formatSeconds(remaining),
+                remaining == null ? '--:--' : formatSeconds(remaining),
                 key: const ValueKey('set_timer_count_label'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -230,10 +231,4 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
       ),
     );
   }
-}
-
-String _formatSeconds(int seconds) {
-  final minutes = seconds ~/ 60;
-  final remaining = seconds % 60;
-  return '$minutes:${remaining.toString().padLeft(2, '0')}';
 }

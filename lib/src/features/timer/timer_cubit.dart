@@ -48,6 +48,8 @@ class TrainingTimerState {
 }
 
 class TrainingTimerCubit extends Cubit<TrainingTimerState> {
+  static const int preparingSeconds = 5;
+
   TrainingTimerCubit({
     required this.workSeconds,
     required this.restSeconds,
@@ -89,7 +91,7 @@ class TrainingTimerCubit extends Cubit<TrainingTimerState> {
       state.copyWith(
         phase: phase,
         remainingSeconds: state.phase == TimerPhase.ready
-            ? 5
+            ? preparingSeconds
             : state.remainingSeconds,
       ),
     );

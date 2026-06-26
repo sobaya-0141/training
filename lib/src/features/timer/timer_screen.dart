@@ -5,6 +5,7 @@ import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/utils/format.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen._({
@@ -224,7 +225,7 @@ class TimerBody extends StatelessWidget {
                       ),
                       Center(
                         child: Text(
-                          _formatSeconds(state.remainingSeconds),
+                          formatSeconds(state.remainingSeconds),
                           key: const ValueKey('timer_count_label'),
                           style: const TextStyle(
                             fontSize: 72,
@@ -291,15 +292,9 @@ String _phaseLabel(TimerPhase phase) => switch (phase) {
   TimerPhase.completed => 'COMPLETE',
 };
 
-String _formatSeconds(int seconds) {
-  final minutes = seconds ~/ 60;
-  final remaining = seconds % 60;
-  return '$minutes:${remaining.toString().padLeft(2, '0')}';
-}
-
 double _pausedProgress(TrainingTimerState state, TrainingTimerCubit cubit) {
   final total = switch (state.previousPhase) {
-    TimerPhase.preparing => 5,
+    TimerPhase.preparing => TrainingTimerCubit.preparingSeconds,
     TimerPhase.work => cubit.workSeconds,
     TimerPhase.rest => cubit.restSeconds,
     _ => cubit.workSeconds,
