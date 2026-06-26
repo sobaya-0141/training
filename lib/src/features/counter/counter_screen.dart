@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/counter/counter_cubit.dart';
@@ -123,6 +125,8 @@ class CounterBody extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
+                const _SetCountdownTimers(),
+                const SizedBox(height: 18),
                 LinearProgressIndicator(
                   value: item.totalSets == 0
                       ? 0
@@ -140,4 +144,96 @@ class CounterBody extends StatelessWidget {
       },
     );
   }
+}
+
+class _SetCountdownTimers extends StatefulWidget {
+  const _SetCountdownTimers();
+
+  @override
+  State<_SetCountdownTimers> createState() => _SetCountdownTimersState();
+}
+
+class _SetCountdownTimersState extends State<_SetCountdownTimers> {
+  static const _timers = [('10秒', 10), ('30秒', 30), ('1分', 60)];
+
+  Timer? _ticker;
+  int? _remainingSeconds;
+
+  bool get _isRunning => _ticker?.isActive ?? false;
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  void _start(int seconds) {
+    _ticker?.cancel();
+    setState(() {
+      _remainingSeconds = seconds;
+    });
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = (_remainingSeconds ?? 0) - 1;
+      if (remaining <= 0) {
+        _ticker?.cancel();
+      }
+      setState(() {
+        _remainingSeconds = remaining.clamp(0, seconds);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final remaining = _remainingSeconds;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 62,
+              child: Text(
+                remaining == null ? '--:--' : _formatSeconds(remaining),
+                key: const ValueKey('set_timer_count_label'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            for (final (index, timer) in _timers.indexed) ...[
+              Expanded(
+                child: OutlinedButton(
+                  key: ValueKey('set_timer_${timer.$2}_button'),
+                  onPressed: _isRunning ? null : () => _start(timer.$2),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: Text(timer.$1),
+                ),
+              ),
+              if (index != _timers.length - 1) const SizedBox(width: 6),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _formatSeconds(int seconds) {
+  final minutes = seconds ~/ 60;
+  final remaining = seconds % 60;
+  return '$minutes:${remaining.toString().padLeft(2, '0')}';
 }

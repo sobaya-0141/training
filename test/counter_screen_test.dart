@@ -18,11 +18,35 @@ void main() {
     expect(find.text('セット 0 / 3'), findsOneWidget);
     expect(find.byKey(const ValueKey('increment_set_button')), findsOneWidget);
     expect(find.byKey(const ValueKey('decrement_set_button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('set_timer_10_button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('set_timer_30_button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('set_timer_60_button')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('increment_set_button')));
     await tester.pump();
 
     expect(find.text('セット 1 / 3'), findsOneWidget);
     expect(find.byKey(const ValueKey('rep_count_label')), findsNothing);
+  });
+
+  testWidgets('セット用タイマーは準備時間なしで指定秒数から開始する', (tester) async {
+    const item = WorkoutItem.counter(
+      name: 'テスト種目',
+      summary: '15回 × 3セット',
+      reps: 15,
+      sets: 3,
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: CounterScreen(item: item)));
+
+    await tester.tap(find.byKey(const ValueKey('set_timer_10_button')));
+    await tester.pump();
+
+    expect(find.text('0:10'), findsOneWidget);
+    expect(find.text('0:05'), findsNothing);
+
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('0:09'), findsOneWidget);
   });
 }
