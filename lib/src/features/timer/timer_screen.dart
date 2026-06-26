@@ -212,7 +212,12 @@ class TimerBody extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       CircularProgressIndicator(
-                        value: state.isComplete ? 1 : null,
+                        value: switch (state.phase) {
+                          TimerPhase.ready => 0.0,
+                          TimerPhase.completed => 1.0,
+                          TimerPhase.paused => _pausedProgress(state, cubit),
+                          _ => null,
+                        },
                         strokeWidth: 18,
                         color: phaseColor,
                         backgroundColor: phaseColor.withValues(alpha: 0.15),
@@ -290,4 +295,17 @@ String _formatSeconds(int seconds) {
   final minutes = seconds ~/ 60;
   final remaining = seconds % 60;
   return '$minutes:${remaining.toString().padLeft(2, '0')}';
+}
+
+double _pausedProgress(TrainingTimerState state, TrainingTimerCubit cubit) {
+  final total = switch (state.previousPhase) {
+    TimerPhase.preparing => 5,
+    TimerPhase.work => cubit.workSeconds,
+    TimerPhase.rest => cubit.restSeconds,
+    _ => cubit.workSeconds,
+  };
+  if (total == 0) {
+    return 0.0;
+  }
+  return ((total - state.remainingSeconds) / total).clamp(0.0, 1.0);
 }
