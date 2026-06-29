@@ -5,7 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/counter/counter_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/timer/timer_cubit.dart';
+import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/screen_wake_lock.dart';
 import 'package:kintore/src/utils/format.dart';
 
 class CounterScreen extends StatelessWidget {
@@ -15,6 +18,7 @@ class CounterScreen extends StatelessWidget {
     this.itemIndex,
     this.repository,
     this.progress,
+    this.onSetTimerCue,
     super.key,
   });
 
@@ -23,38 +27,43 @@ class CounterScreen extends StatelessWidget {
   final int? itemIndex;
   final WorkoutProgressRepository? repository;
   final WorkoutProgress? progress;
+  final void Function(TimerCue cue)? onSetTimerCue;
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CounterCubit(
-        repsPerSet: item.reps,
-        totalSets: item.totalSets,
-        step: item.countStep,
-        initialState: CounterState(
-          reps: progress?.reps ?? 0,
-          completedSets: progress?.completedSets ?? 0,
+    return KeepScreenOn(
+      child: BlocProvider(
+        create: (_) => CounterCubit(
+          repsPerSet: item.reps,
+          totalSets: item.totalSets,
+          step: item.countStep,
+          initialState: CounterState(
+            reps: progress?.reps ?? 0,
+            completedSets: progress?.completedSets ?? 0,
+          ),
         ),
-      ),
-      child: Scaffold(
-        appBar: AppBar(title: Text(item.name)),
-        body: BlocListener<CounterCubit, CounterState>(
-          listener: (_, state) {
-            if (repository == null || date == null || itemIndex == null) return;
-            final complete = state.completedSets >= item.totalSets;
-            repository!.save(
-              WorkoutProgress(
-                dateKey: workoutDateKey(date!),
-                itemIndex: itemIndex!,
-                status: complete
-                    ? WorkoutProgressStatus.completed
-                    : WorkoutProgressStatus.inProgress,
-                reps: state.reps,
-                completedSets: state.completedSets,
-              ),
-            );
-          },
-          child: CounterBody(item: item),
+        child: Scaffold(
+          appBar: AppBar(title: Text(item.name)),
+          body: BlocListener<CounterCubit, CounterState>(
+            listener: (_, state) {
+              if (repository == null || date == null || itemIndex == null) {
+                return;
+              }
+              final complete = state.completedSets >= item.totalSets;
+              repository!.save(
+                WorkoutProgress(
+                  dateKey: workoutDateKey(date!),
+                  itemIndex: itemIndex!,
+                  status: complete
+                      ? WorkoutProgressStatus.completed
+                      : WorkoutProgressStatus.inProgress,
+                  reps: state.reps,
+                  completedSets: state.completedSets,
+                ),
+              );
+            },
+            child: CounterBody(item: item, onSetTimerCue: onSetTimerCue),
+          ),
         ),
       ),
     );
@@ -62,9 +71,10 @@ class CounterScreen extends StatelessWidget {
 }
 
 class CounterBody extends StatelessWidget {
-  const CounterBody({required this.item, super.key});
+  const CounterBody({required this.item, this.onSetTimerCue, super.key});
 
   final WorkoutItem item;
+  final void Function(TimerCue cue)? onSetTimerCue;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +136,7 @@ class CounterBody extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
-                const _SetCountdownTimers(),
+                _SetCountdownTimers(onCue: onSetTimerCue),
                 const SizedBox(height: 18),
                 LinearProgressIndicator(
                   value: item.totalSets == 0
@@ -148,7 +158,9 @@ class CounterBody extends StatelessWidget {
 }
 
 class _SetCountdownTimers extends StatefulWidget {
-  const _SetCountdownTimers();
+  const _SetCountdownTimers({this.onCue});
+
+  final void Function(TimerCue cue)? onCue;
 
   @override
   State<_SetCountdownTimers> createState() => _SetCountdownTimersState();
@@ -157,15 +169,34 @@ class _SetCountdownTimers extends StatefulWidget {
 class _SetCountdownTimersState extends State<_SetCountdownTimers> {
   static const _timers = [('10秒', 10), ('30秒', 30), ('1分', 60)];
 
+  final _cuePlayer = TimerCuePlayer();
   Timer? _ticker;
   int? _remainingSeconds;
 
   bool get _isRunning => _ticker?.isActive ?? false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.onCue == null) {
+      _cuePlayer.warmUp();
+    }
+  }
+
+  @override
   void dispose() {
     _ticker?.cancel();
+    _cuePlayer.release();
     super.dispose();
+  }
+
+  void _playCue(TimerCue cue) {
+    final onCue = widget.onCue;
+    if (onCue != null) {
+      onCue(cue);
+      return;
+    }
+    unawaited(_cuePlayer.play(cue));
   }
 
   void _start(int seconds) {
@@ -178,6 +209,9 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
       final remaining = (_remainingSeconds ?? 0) - 1;
       if (remaining <= 0) {
         _ticker?.cancel();
+        _playCue(TimerCue.stop);
+      } else if (remaining <= 3) {
+        _playCue(TimerCue.countdown);
       }
       setState(() {
         _remainingSeconds = remaining.clamp(0, seconds);

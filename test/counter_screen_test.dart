@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kintore/src/features/counter/counter_screen.dart';
+import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 
 void main() {
@@ -48,5 +49,64 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('0:09'), findsOneWidget);
+  });
+
+  testWidgets('セット用タイマーは残り2秒までカウントダウンする', (tester) async {
+    const item = WorkoutItem.counter(
+      name: 'テスト種目',
+      summary: '15回 × 3セット',
+      reps: 15,
+      sets: 3,
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: CounterScreen(item: item)));
+
+    await tester.tap(find.byKey(const ValueKey('set_timer_10_button')));
+    await tester.pump();
+
+    expect(find.text('0:10'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 8));
+
+    expect(find.text('0:02'), findsOneWidget);
+  });
+
+  testWidgets('セット用タイマーは残り3秒からcountdown、0秒でstopを鳴らす', (tester) async {
+    final cues = <TimerCue>[];
+    const item = WorkoutItem.counter(
+      name: 'テスト種目',
+      summary: '15回 × 3セット',
+      reps: 15,
+      sets: 3,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CounterScreen(item: item, onSetTimerCue: cues.add),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('set_timer_10_button')));
+    await tester.pump();
+
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(cues, isEmpty);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(cues, [TimerCue.countdown]);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+    expect(cues, [TimerCue.countdown, TimerCue.countdown, TimerCue.countdown]);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(cues, [
+      TimerCue.countdown,
+      TimerCue.countdown,
+      TimerCue.countdown,
+      TimerCue.stop,
+    ]);
   });
 }
