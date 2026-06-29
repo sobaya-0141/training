@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kintore/src/features/navigation/main_shell.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/screen_wake_lock.dart';
 import 'package:kintore/src/theme/app_theme.dart';
 
 class KintoreApp extends StatefulWidget {
@@ -22,24 +23,28 @@ class _KintoreAppState extends State<KintoreApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Kintore',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      home: FutureBuilder<void>(
-        future: _initialization,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.hasError) {
-            return const Scaffold(body: Center(child: Text('データベースを開けませんでした')));
-          }
-          return MainShell(repository: _repository);
-        },
+    return KeepScreenOn(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Kintore',
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        home: FutureBuilder<void>(
+          future: _initialization,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return const Scaffold(
+                body: Center(child: Text('データベースを開けませんでした')),
+              );
+            }
+            return MainShell(repository: _repository);
+          },
+        ),
       ),
     );
   }
