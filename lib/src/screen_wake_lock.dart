@@ -35,6 +35,7 @@ class _KeepScreenOnState extends State<KeepScreenOn>
     switch (state) {
       case AppLifecycleState.resumed:
         unawaited(widget.enable());
+        break;
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.hidden:
