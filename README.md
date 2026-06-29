@@ -14,7 +14,7 @@ flutter run
 ## 品質チェック
 
 ```sh
-scripts/check.sh
+./scripts/check.sh
 ```
 
 ## ドキュメント

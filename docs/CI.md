@@ -3,7 +3,7 @@
 このプロジェクトでは、PR ごとに以下のチェックを通すことを基準にします。
 
 ```sh
-scripts/check.sh
+./scripts/check.sh
 ```
 
 チェック内容は以下です。
