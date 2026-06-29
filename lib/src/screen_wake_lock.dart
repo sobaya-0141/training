@@ -41,6 +41,7 @@ class _KeepScreenOnState extends State<KeepScreenOn>
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
         unawaited(widget.disable());
+        break;
     }
   }
 

@@ -17,6 +17,7 @@ class CounterScreen extends StatelessWidget {
     this.itemIndex,
     this.repository,
     this.progress,
+    this.onSetTimerCue,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class CounterScreen extends StatelessWidget {
   final int? itemIndex;
   final WorkoutProgressRepository? repository;
   final WorkoutProgress? progress;
+  final void Function(TimerCue cue)? onSetTimerCue;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,7 @@ class CounterScreen extends StatelessWidget {
               ),
             );
           },
-          child: CounterBody(item: item),
+          child: CounterBody(item: item, onSetTimerCue: onSetTimerCue),
         ),
       ),
     );
@@ -64,9 +66,10 @@ class CounterScreen extends StatelessWidget {
 }
 
 class CounterBody extends StatelessWidget {
-  const CounterBody({required this.item, super.key});
+  const CounterBody({required this.item, this.onSetTimerCue, super.key});
 
   final WorkoutItem item;
+  final void Function(TimerCue cue)? onSetTimerCue;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +131,7 @@ class CounterBody extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
-                const _SetCountdownTimers(),
+                _SetCountdownTimers(onCue: onSetTimerCue),
                 const SizedBox(height: 18),
                 LinearProgressIndicator(
                   value: item.totalSets == 0
@@ -150,7 +153,9 @@ class CounterBody extends StatelessWidget {
 }
 
 class _SetCountdownTimers extends StatefulWidget {
-  const _SetCountdownTimers();
+  const _SetCountdownTimers({this.onCue});
+
+  final void Function(TimerCue cue)? onCue;
 
   @override
   State<_SetCountdownTimers> createState() => _SetCountdownTimersState();
@@ -166,16 +171,19 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
   bool get _isRunning => _ticker?.isActive ?? false;
 
   @override
-  void initState() {
-    super.initState();
-    _cuePlayer.initialize();
-  }
-
-  @override
   void dispose() {
     _ticker?.cancel();
     _cuePlayer.dispose();
     super.dispose();
+  }
+
+  void _playCue(TimerCue cue) {
+    final onCue = widget.onCue;
+    if (onCue != null) {
+      onCue(cue);
+      return;
+    }
+    unawaited(_cuePlayer.play(cue));
   }
 
   void _start(int seconds) {
@@ -188,9 +196,9 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
       final remaining = (_remainingSeconds ?? 0) - 1;
       if (remaining <= 0) {
         _ticker?.cancel();
-        _cuePlayer.play(TimerCue.stop);
+        _playCue(TimerCue.stop);
       } else if (remaining <= 3) {
-        _cuePlayer.play(TimerCue.countdown);
+        _playCue(TimerCue.countdown);
       }
       setState(() {
         _remainingSeconds = remaining.clamp(0, seconds);
