@@ -23,10 +23,8 @@ flutter run
 
 ## 品質チェック
 
-PR 作成前に以下を実行してください。
+PR 作成前にフォーマット、静的解析、テストをまとめて実行してください。
 
 ```sh
-dart format --output=none --set-exit-if-changed .
-flutter analyze
-flutter test
+./scripts/check.sh
 ```
