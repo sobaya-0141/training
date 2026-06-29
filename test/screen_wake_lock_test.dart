@@ -20,12 +20,15 @@ void main() {
     expect(changes, [true]);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
     expect(changes, [true, false]);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
     expect(changes, [true, false, true]);
 
     await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
     expect(changes, [true, false, true, false]);
   });
 }

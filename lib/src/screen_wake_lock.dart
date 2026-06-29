@@ -23,32 +23,41 @@ class KeepScreenOn extends StatefulWidget {
 
 class _KeepScreenOnState extends State<KeepScreenOn>
     with WidgetsBindingObserver {
+  void _runWakeLockAction(Future<void> Function() action) {
+    unawaited(
+      action().catchError((Object error) {
+        debugPrint('Screen wake lock action failed: $error');
+      }),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    unawaited(widget.enable());
+    _runWakeLockAction(widget.enable);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        unawaited(widget.enable());
+        _runWakeLockAction(widget.enable);
         break;
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-        unawaited(widget.disable());
+        _runWakeLockAction(widget.disable);
+        break;
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    unawaited(widget.disable());
+    _runWakeLockAction(widget.disable);
     super.dispose();
   }
 
