@@ -5,6 +5,7 @@ import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/screen_wake_lock.dart';
 import 'package:kintore/src/utils/format.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -130,40 +131,42 @@ class _TimerScreenState extends State<TimerScreen> {
             totalRounds: widget.roundTitles.length,
             title: widget.roundTitles[restoredRound],
           );
-    return BlocProvider(
-      create: (_) => TrainingTimerCubit(
-        workSeconds: widget.workSeconds,
-        restSeconds: widget.restSeconds,
-        roundTitles: widget.roundTitles,
-        initialState: initialState,
-        onCue: _cuePlayer.play,
-      ),
-      child: Scaffold(
-        appBar: AppBar(title: Text(widget.title)),
-        body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
-          listener: (_, state) {
-            if (widget.repository == null ||
-                widget.date == null ||
-                widget.itemIndex == null) {
-              return;
-            }
-            if (state.phase == TimerPhase.ready) return;
-            widget.repository!.save(
-              WorkoutProgress(
-                dateKey: workoutDateKey(widget.date!),
-                itemIndex: widget.itemIndex!,
-                status: state.isComplete
-                    ? WorkoutProgressStatus.completed
-                    : WorkoutProgressStatus.inProgress,
-                timerPhase: state.phase == TimerPhase.paused
-                    ? state.previousPhase.name
-                    : state.phase.name,
-                remainingSeconds: state.remainingSeconds,
-                roundIndex: state.roundIndex,
-              ),
-            );
-          },
-          child: TimerBody(previewExercises: widget.previewExercises),
+    return KeepScreenOn(
+      child: BlocProvider(
+        create: (_) => TrainingTimerCubit(
+          workSeconds: widget.workSeconds,
+          restSeconds: widget.restSeconds,
+          roundTitles: widget.roundTitles,
+          initialState: initialState,
+          onCue: _cuePlayer.play,
+        ),
+        child: Scaffold(
+          appBar: AppBar(title: Text(widget.title)),
+          body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
+            listener: (_, state) {
+              if (widget.repository == null ||
+                  widget.date == null ||
+                  widget.itemIndex == null) {
+                return;
+              }
+              if (state.phase == TimerPhase.ready) return;
+              widget.repository!.save(
+                WorkoutProgress(
+                  dateKey: workoutDateKey(widget.date!),
+                  itemIndex: widget.itemIndex!,
+                  status: state.isComplete
+                      ? WorkoutProgressStatus.completed
+                      : WorkoutProgressStatus.inProgress,
+                  timerPhase: state.phase == TimerPhase.paused
+                      ? state.previousPhase.name
+                      : state.phase.name,
+                  remainingSeconds: state.remainingSeconds,
+                  roundIndex: state.roundIndex,
+                ),
+              );
+            },
+            child: TimerBody(previewExercises: widget.previewExercises),
+          ),
         ),
       ),
     );

@@ -7,11 +7,13 @@ class TimerCuePlayer {
   final _countdownPlayer = AudioPlayer();
   final _startPlayer = AudioPlayer();
   final _stopPlayer = AudioPlayer();
-  var _initialized = false;
+  Future<void>? _initFuture;
 
-  Future<void> initialize() async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> initialize() {
+    return _initFuture ??= _preparePlayers();
+  }
+
+  Future<void> _preparePlayers() async {
     await Future.wait([
       _prepare(_countdownPlayer, 'audio/countdown.mp3'),
       _prepare(_startPlayer, 'audio/start.mp3'),

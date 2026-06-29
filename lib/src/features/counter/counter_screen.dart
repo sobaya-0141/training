@@ -8,6 +8,7 @@ import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/screen_wake_lock.dart';
 import 'package:kintore/src/utils/format.dart';
 
 class CounterScreen extends StatelessWidget {
@@ -30,35 +31,39 @@ class CounterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CounterCubit(
-        repsPerSet: item.reps,
-        totalSets: item.totalSets,
-        step: item.countStep,
-        initialState: CounterState(
-          reps: progress?.reps ?? 0,
-          completedSets: progress?.completedSets ?? 0,
+    return KeepScreenOn(
+      child: BlocProvider(
+        create: (_) => CounterCubit(
+          repsPerSet: item.reps,
+          totalSets: item.totalSets,
+          step: item.countStep,
+          initialState: CounterState(
+            reps: progress?.reps ?? 0,
+            completedSets: progress?.completedSets ?? 0,
+          ),
         ),
-      ),
-      child: Scaffold(
-        appBar: AppBar(title: Text(item.name)),
-        body: BlocListener<CounterCubit, CounterState>(
-          listener: (_, state) {
-            if (repository == null || date == null || itemIndex == null) return;
-            final complete = state.completedSets >= item.totalSets;
-            repository!.save(
-              WorkoutProgress(
-                dateKey: workoutDateKey(date!),
-                itemIndex: itemIndex!,
-                status: complete
-                    ? WorkoutProgressStatus.completed
-                    : WorkoutProgressStatus.inProgress,
-                reps: state.reps,
-                completedSets: state.completedSets,
-              ),
-            );
-          },
-          child: CounterBody(item: item, onSetTimerCue: onSetTimerCue),
+        child: Scaffold(
+          appBar: AppBar(title: Text(item.name)),
+          body: BlocListener<CounterCubit, CounterState>(
+            listener: (_, state) {
+              if (repository == null || date == null || itemIndex == null) {
+                return;
+              }
+              final complete = state.completedSets >= item.totalSets;
+              repository!.save(
+                WorkoutProgress(
+                  dateKey: workoutDateKey(date!),
+                  itemIndex: itemIndex!,
+                  status: complete
+                      ? WorkoutProgressStatus.completed
+                      : WorkoutProgressStatus.inProgress,
+                  reps: state.reps,
+                  completedSets: state.completedSets,
+                ),
+              );
+            },
+            child: CounterBody(item: item, onSetTimerCue: onSetTimerCue),
+          ),
         ),
       ),
     );
@@ -169,6 +174,14 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
   int? _remainingSeconds;
 
   bool get _isRunning => _ticker?.isActive ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.onCue == null) {
+      unawaited(_cuePlayer.initialize());
+    }
+  }
 
   @override
   void dispose() {
