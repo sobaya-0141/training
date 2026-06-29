@@ -49,4 +49,24 @@ void main() {
 
     expect(find.text('0:09'), findsOneWidget);
   });
+
+  testWidgets('セット用タイマーは残り2秒までカウントダウンする', (tester) async {
+    const item = WorkoutItem.counter(
+      name: 'テスト種目',
+      summary: '15回 × 3セット',
+      reps: 15,
+      sets: 3,
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: CounterScreen(item: item)));
+
+    await tester.tap(find.byKey(const ValueKey('set_timer_10_button')));
+    await tester.pump();
+
+    expect(find.text('0:10'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 8));
+
+    expect(find.text('0:02'), findsOneWidget);
+  });
 }

@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/counter/counter_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/timer/timer_cubit.dart';
+import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 import 'package:kintore/src/utils/format.dart';
 
@@ -157,14 +159,22 @@ class _SetCountdownTimers extends StatefulWidget {
 class _SetCountdownTimersState extends State<_SetCountdownTimers> {
   static const _timers = [('10秒', 10), ('30秒', 30), ('1分', 60)];
 
+  final _cuePlayer = TimerCuePlayer();
   Timer? _ticker;
   int? _remainingSeconds;
 
   bool get _isRunning => _ticker?.isActive ?? false;
 
   @override
+  void initState() {
+    super.initState();
+    _cuePlayer.initialize();
+  }
+
+  @override
   void dispose() {
     _ticker?.cancel();
+    _cuePlayer.dispose();
     super.dispose();
   }
 
@@ -178,6 +188,9 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
       final remaining = (_remainingSeconds ?? 0) - 1;
       if (remaining <= 0) {
         _ticker?.cancel();
+        _cuePlayer.play(TimerCue.stop);
+      } else if (remaining <= 3) {
+        _cuePlayer.play(TimerCue.countdown);
       }
       setState(() {
         _remainingSeconds = remaining.clamp(0, seconds);
