@@ -209,7 +209,7 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
       final remaining = (_remainingSeconds ?? 0) - 1;
       if (remaining <= 0) {
         _ticker?.cancel();
-        _playCue(TimerCue.stop);
+        _playCue(TimerCue.start);
       } else if (remaining <= 3) {
         _playCue(TimerCue.countdown);
       }

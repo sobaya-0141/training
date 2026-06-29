@@ -71,7 +71,7 @@ void main() {
     expect(find.text('0:02'), findsOneWidget);
   });
 
-  testWidgets('セット用タイマーは残り3秒からcountdown、0秒でstopを鳴らす', (tester) async {
+  testWidgets('セット用タイマーは残り3秒からcountdown、0秒でstartを鳴らす', (tester) async {
     final cues = <TimerCue>[];
     const item = WorkoutItem.counter(
       name: 'テスト種目',
@@ -106,7 +106,7 @@ void main() {
       TimerCue.countdown,
       TimerCue.countdown,
       TimerCue.countdown,
-      TimerCue.stop,
+      TimerCue.start,
     ]);
   });
 }
