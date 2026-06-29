@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +12,21 @@ class TimerCuePlayer {
   Future<void>? _initFuture;
 
   Future<void> initialize() {
-    return _initFuture ??= _preparePlayers();
+    return _initFuture ??= _preparePlayers().catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
+      _initFuture = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+  }
+
+  void warmUp() {
+    unawaited(
+      initialize().catchError((Object error) {
+        debugPrint('Timer cue player initialize failed: $error');
+      }),
+    );
   }
 
   Future<void> _preparePlayers() async {
@@ -43,6 +59,14 @@ class TimerCuePlayer {
     await player.setReleaseMode(ReleaseMode.stop);
     await player.setVolume(1);
     await player.setSource(AssetSource(assetPath));
+  }
+
+  void release() {
+    unawaited(
+      dispose().catchError((Object error) {
+        debugPrint('Timer cue player dispose failed: $error');
+      }),
+    );
   }
 
   Future<void> dispose() async {

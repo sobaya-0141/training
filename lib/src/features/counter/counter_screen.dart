@@ -179,14 +179,14 @@ class _SetCountdownTimersState extends State<_SetCountdownTimers> {
   void initState() {
     super.initState();
     if (widget.onCue == null) {
-      unawaited(_cuePlayer.initialize());
+      _cuePlayer.warmUp();
     }
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _cuePlayer.dispose();
+    _cuePlayer.release();
     super.dispose();
   }
 

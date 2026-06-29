@@ -96,12 +96,12 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void initState() {
     super.initState();
-    _cuePlayer.initialize();
+    _cuePlayer.warmUp();
   }
 
   @override
   void dispose() {
-    _cuePlayer.dispose();
+    _cuePlayer.release();
     super.dispose();
   }
 
