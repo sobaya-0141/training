@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kintore/src/features/navigation/main_shell.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/theme/app_theme.dart';
 
 class KintoreApp extends StatefulWidget {
   const KintoreApp({super.key});
@@ -21,30 +22,11 @@ class _KintoreAppState extends State<KintoreApp> {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFFE35B32);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Kintore',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seed,
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF7F4EF),
-        useMaterial3: true,
-        cardTheme: const CardThemeData(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          color: Colors.white,
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seed,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       home: FutureBuilder<void>(
         future: _initialization,
         builder: (context, snapshot) {
