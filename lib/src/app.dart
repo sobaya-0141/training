@@ -48,13 +48,14 @@ class _KintoreAppState extends State<KintoreApp> {
             ),
           );
         }
-        _router ??= createAppRouter(_repository);
+        final router = _router ?? createAppRouter(_repository);
+        _router = router;
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           title: 'Kintore',
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
-          routerConfig: _router,
+          routerConfig: router,
         );
       },
     );
