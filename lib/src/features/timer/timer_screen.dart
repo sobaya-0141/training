@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
@@ -17,7 +17,7 @@ class TimerScreen extends StatefulWidget {
     this.previewExercises = const [],
     this.date,
     this.itemIndex,
-    this.repository,
+    this.progressCubit,
     this.progress,
   });
 
@@ -34,7 +34,7 @@ class TimerScreen extends StatefulWidget {
     required WorkoutItem item,
     DateTime? date,
     int? itemIndex,
-    WorkoutProgressRepository? repository,
+    WorkoutProgressCubit? progressCubit,
     WorkoutProgress? progress,
   }) {
     return TimerScreen._(
@@ -47,7 +47,7 @@ class TimerScreen extends StatefulWidget {
       ],
       date: date,
       itemIndex: itemIndex,
-      repository: repository,
+      progressCubit: progressCubit,
       progress: progress,
     );
   }
@@ -56,7 +56,7 @@ class TimerScreen extends StatefulWidget {
     required WorkoutItem item,
     DateTime? date,
     int? itemIndex,
-    WorkoutProgressRepository? repository,
+    WorkoutProgressCubit? progressCubit,
     WorkoutProgress? progress,
   }) {
     return TimerScreen._(
@@ -71,7 +71,7 @@ class TimerScreen extends StatefulWidget {
       previewExercises: item.circuitExercises,
       date: date,
       itemIndex: itemIndex,
-      repository: repository,
+      progressCubit: progressCubit,
       progress: progress,
     );
   }
@@ -83,7 +83,7 @@ class TimerScreen extends StatefulWidget {
   final List<String> previewExercises;
   final DateTime? date;
   final int? itemIndex;
-  final WorkoutProgressRepository? repository;
+  final WorkoutProgressCubit? progressCubit;
   final WorkoutProgress? progress;
 
   @override
@@ -144,13 +144,13 @@ class _TimerScreenState extends State<TimerScreen> {
           appBar: AppBar(title: Text(widget.title)),
           body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
             listener: (_, state) {
-              if (widget.repository == null ||
+              if (widget.progressCubit == null ||
                   widget.date == null ||
                   widget.itemIndex == null) {
                 return;
               }
               if (state.phase == TimerPhase.ready) return;
-              widget.repository!.save(
+              widget.progressCubit!.save(
                 WorkoutProgress(
                   dateKey: workoutDateKey(widget.date!),
                   itemIndex: widget.itemIndex!,

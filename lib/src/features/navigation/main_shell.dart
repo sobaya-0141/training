@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kintore/src/features/calendar/calendar_screen.dart';
 import 'package:kintore/src/features/home/home_screen.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({required this.repository, super.key});
+  const MainShell({required this.progressCubit, super.key});
 
-  final WorkoutProgressRepository repository;
+  final WorkoutProgressCubit progressCubit;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -21,8 +21,8 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomeScreen(repository: widget.repository),
-          CalendarScreen(repository: widget.repository),
+          HomeScreen(progressCubit: widget.progressCubit),
+          CalendarScreen(progressCubit: widget.progressCubit),
         ],
       ),
       bottomNavigationBar: NavigationBar(

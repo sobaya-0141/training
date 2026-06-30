@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kintore/src/features/counter/counter_screen.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/timer/timer_screen.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 
@@ -10,18 +10,18 @@ class WorkoutCard extends StatelessWidget {
     required this.item,
     required this.index,
     required this.date,
-    this.repository,
+    this.progressCubit,
     super.key,
   });
 
   final WorkoutItem item;
   final int index;
   final DateTime date;
-  final WorkoutProgressRepository? repository;
+  final WorkoutProgressCubit? progressCubit;
 
   @override
   Widget build(BuildContext context) {
-    final progress = repository?.progressFor(date, index);
+    final progress = progressCubit?.progressFor(date, index);
     final status = progress?.status ?? WorkoutProgressStatus.notStarted;
     final statusColor = switch (status) {
       WorkoutProgressStatus.completed => Colors.green,
@@ -100,21 +100,21 @@ class WorkoutCard extends StatelessWidget {
         item: item,
         date: date,
         itemIndex: index,
-        repository: repository,
+        progressCubit: progressCubit,
         progress: progress,
       ),
       WorkoutKind.interval => TimerScreen.interval(
         item: item,
         date: date,
         itemIndex: index,
-        repository: repository,
+        progressCubit: progressCubit,
         progress: progress,
       ),
       WorkoutKind.circuit => TimerScreen.circuit(
         item: item,
         date: date,
         itemIndex: index,
-        repository: repository,
+        progressCubit: progressCubit,
         progress: progress,
       ),
     };

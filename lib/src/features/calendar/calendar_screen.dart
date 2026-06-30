@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/workout/workout_schedule.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({required this.repository, super.key});
+  const CalendarScreen({required this.progressCubit, super.key});
 
-  final WorkoutProgressRepository repository;
+  final WorkoutProgressCubit progressCubit;
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -27,8 +28,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: AnimatedBuilder(
-        animation: widget.repository,
+      child: BlocBuilder<WorkoutProgressCubit, WorkoutProgressState>(
+        bloc: widget.progressCubit,
         builder: (context, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
@@ -77,7 +78,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _CalendarGrid(
               month: _visibleMonth,
               selectedDate: _selectedDate,
-              repository: widget.repository,
+              progressCubit: widget.progressCubit,
               onSelected: (date) => setState(() => _selectedDate = date),
             ),
             const SizedBox(height: 18),
@@ -90,7 +91,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            _DaySummary(date: _selectedDate, repository: widget.repository),
+            _DaySummary(date: _selectedDate, progressCubit: widget.progressCubit),
           ],
         ),
       ),
@@ -112,13 +113,13 @@ class _CalendarGrid extends StatelessWidget {
   const _CalendarGrid({
     required this.month,
     required this.selectedDate,
-    required this.repository,
+    required this.progressCubit,
     required this.onSelected,
   });
 
   final DateTime month;
   final DateTime selectedDate;
-  final WorkoutProgressRepository repository;
+  final WorkoutProgressCubit progressCubit;
   final ValueChanged<DateTime> onSelected;
 
   @override
@@ -138,7 +139,7 @@ class _CalendarGrid extends StatelessWidget {
         final date = gridStart.add(Duration(days: index));
         final isCurrentMonth = date.month == month.month;
         final selected = workoutDateKey(date) == workoutDateKey(selectedDate);
-        final status = _statusFor(date, repository);
+        final status = _statusFor(date, progressCubit);
         final color = switch (status) {
           WorkoutProgressStatus.completed => Colors.green,
           WorkoutProgressStatus.inProgress => Colors.orange,
@@ -174,15 +175,15 @@ class _CalendarGrid extends StatelessWidget {
 }
 
 class _DaySummary extends StatelessWidget {
-  const _DaySummary({required this.date, required this.repository});
+  const _DaySummary({required this.date, required this.progressCubit});
 
   final DateTime date;
-  final WorkoutProgressRepository repository;
+  final WorkoutProgressCubit progressCubit;
 
   @override
   Widget build(BuildContext context) {
     final workout = workoutForDate(date);
-    final progress = repository.progressForDate(date);
+    final progress = progressCubit.progressForDate(date);
     final completed = progress
         .where((item) => item.status == WorkoutProgressStatus.completed)
         .length;
@@ -241,10 +242,10 @@ class _LegendDot extends StatelessWidget {
 
 WorkoutProgressStatus _statusFor(
   DateTime date,
-  WorkoutProgressRepository repository,
+  WorkoutProgressCubit progressCubit,
 ) {
   final itemCount = workoutForDate(date).items.length;
-  final progress = repository.progressForDate(date);
+  final progress = progressCubit.progressForDate(date);
   if (itemCount > 0 &&
       progress
               .where((item) => item.status == WorkoutProgressStatus.completed)

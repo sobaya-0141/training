@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/navigation/main_shell.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/theme/app_theme.dart';
 
@@ -13,9 +15,11 @@ class KintoreApp extends StatefulWidget {
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
   late final Future<void> _initialization = _repository.initialize();
+  WorkoutProgressCubit? _progressCubit;
 
   @override
   void dispose() {
+    _progressCubit?.close();
     _repository.dispose();
     super.dispose();
   }
@@ -38,7 +42,11 @@ class _KintoreAppState extends State<KintoreApp> {
           if (snapshot.hasError) {
             return const Scaffold(body: Center(child: Text('データベースを開けませんでした')));
           }
-          return MainShell(repository: _repository);
+          _progressCubit ??= WorkoutProgressCubit(_repository);
+          return BlocProvider.value(
+            value: _progressCubit!,
+            child: MainShell(progressCubit: _progressCubit!),
+          );
         },
       ),
     );

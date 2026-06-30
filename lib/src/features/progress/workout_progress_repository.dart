@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-class WorkoutProgressRepository extends ChangeNotifier {
+class WorkoutProgressRepository {
   Database? _database;
   final Map<String, WorkoutProgress> _cache = {};
 
@@ -46,7 +47,6 @@ class WorkoutProgressRepository extends ChangeNotifier {
 
   Future<void> save(WorkoutProgress progress) async {
     _cache[_key(progress.dateKey, progress.itemIndex)] = progress;
-    notifyListeners();
     await _database!.insert('workout_progress', {
       'date_key': progress.dateKey,
       'item_index': progress.itemIndex,
@@ -75,9 +75,7 @@ class WorkoutProgressRepository extends ChangeNotifier {
 
   String _key(String dateKey, int itemIndex) => '$dateKey:$itemIndex';
 
-  @override
   void dispose() {
-    _database?.close();
-    super.dispose();
+    unawaited(_database?.close());
   }
 }
