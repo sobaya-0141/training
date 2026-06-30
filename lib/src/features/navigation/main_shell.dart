@@ -1,34 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:kintore/src/features/calendar/calendar_screen.dart';
-import 'package:kintore/src/features/home/home_screen.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:go_router/go_router.dart';
 
-class MainShell extends StatefulWidget {
-  const MainShell({required this.repository, super.key});
+class MainShell extends StatelessWidget {
+  const MainShell({required this.navigationShell, super.key});
 
-  final WorkoutProgressRepository repository;
-
-  @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  var _selectedIndex = 0;
+  final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          HomeScreen(repository: widget.repository),
-          CalendarScreen(repository: widget.repository),
-        ],
-      ),
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: navigationShell.goBranch,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.fitness_center_outlined),

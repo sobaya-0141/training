@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kintore/src/features/timer/timer_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kintore/src/features/navigation/app_routes.dart';
 
 class QuickTimers extends StatelessWidget {
   const QuickTimers({super.key});
@@ -24,13 +25,8 @@ class QuickTimers extends StatelessWidget {
               Expanded(
                 child: FilledButton.tonal(
                   key: ValueKey('quick_timer_${timer.$2}_button'),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => TimerScreen.simple(
-                        title: timer.$1,
-                        seconds: timer.$2,
-                      ),
-                    ),
+                  onPressed: () => context.push(
+                    AppRoutes.simpleTimer(timer.$2, title: timer.$1),
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),

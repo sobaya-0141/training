@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kintore/src/features/navigation/main_shell.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kintore/src/features/navigation/app_router.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/theme/app_theme.dart';
 
@@ -13,34 +14,49 @@ class KintoreApp extends StatefulWidget {
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
   late final Future<void> _initialization = _repository.initialize();
+  GoRouter? _router;
 
   @override
   void dispose() {
+    _router?.dispose();
     _repository.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Kintore',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      home: FutureBuilder<void>(
-        future: _initialization,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
+    return FutureBuilder<void>(
+      future: _initialization,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.hasError) {
-            return const Scaffold(body: Center(child: Text('データベースを開けませんでした')));
-          }
-          return MainShell(repository: _repository);
-        },
-      ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            home: const Scaffold(
+              body: Center(child: Text('データベースを開けませんでした')),
+            ),
+          );
+        }
+        _router ??= createAppRouter(_repository);
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'Kintore',
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          routerConfig: _router,
+        );
+      },
     );
   }
 }

@@ -1,0 +1,107 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kintore/src/features/calendar/calendar_screen.dart';
+import 'package:kintore/src/features/counter/counter_screen.dart';
+import 'package:kintore/src/features/home/home_screen.dart';
+import 'package:kintore/src/features/navigation/app_routes.dart';
+import 'package:kintore/src/features/navigation/main_shell.dart';
+import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/timer/timer_screen.dart';
+import 'package:kintore/src/features/workout/workout_models.dart';
+import 'package:kintore/src/features/workout/workout_schedule.dart';
+
+GoRouter createAppRouter(WorkoutProgressRepository repository) {
+  return GoRouter(
+    initialLocation: AppRoutes.home,
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainShell(navigationShell: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) =>
+                    HomeScreen(repository: repository),
+                routes: [
+                  GoRoute(
+                    path: 'timer/simple/:seconds',
+                    builder: (context, state) {
+                      final seconds = int.parse(
+                        state.pathParameters['seconds']!,
+                      );
+                      final title = state.uri.queryParameters['title'] ?? '';
+                      return TimerScreen.simple(
+                        title: title,
+                        seconds: seconds,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'workout/:date/:index',
+                    builder: (context, state) {
+                      final date = parseWorkoutDate(
+                        state.pathParameters['date']!,
+                      );
+                      final index = int.parse(state.pathParameters['index']!);
+                      return _workoutScreen(repository, date, index);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.calendar,
+                builder: (context, state) =>
+                    CalendarScreen(repository: repository),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget _workoutScreen(
+  WorkoutProgressRepository repository,
+  DateTime date,
+  int index,
+) {
+  final workout = workoutForDate(date);
+  if (index < 0 || index >= workout.items.length) {
+    return const Scaffold(
+      body: Center(child: Text('メニューが見つかりません')),
+    );
+  }
+  final item = workout.items[index];
+  final progress = repository.progressFor(date, index);
+  return switch (item.kind) {
+    WorkoutKind.counter => CounterScreen(
+      item: item,
+      date: date,
+      itemIndex: index,
+      repository: repository,
+      progress: progress,
+    ),
+    WorkoutKind.interval => TimerScreen.interval(
+      item: item,
+      date: date,
+      itemIndex: index,
+      repository: repository,
+      progress: progress,
+    ),
+    WorkoutKind.circuit => TimerScreen.circuit(
+      item: item,
+      date: date,
+      itemIndex: index,
+      repository: repository,
+      progress: progress,
+    ),
+  };
+}

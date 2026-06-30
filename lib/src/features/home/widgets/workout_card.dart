@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:kintore/src/features/counter/counter_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kintore/src/features/navigation/app_routes.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
-import 'package:kintore/src/features/timer/timer_screen.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 
 class WorkoutCard extends StatelessWidget {
@@ -39,9 +39,7 @@ class WorkoutCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: ValueKey('workout_${index}_button'),
-        onTap: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => _screenFor(item, progress))),
+        onTap: () => context.push(AppRoutes.workout(date, index)),
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(
@@ -92,32 +90,6 @@ class WorkoutCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _screenFor(WorkoutItem item, WorkoutProgress? progress) {
-    return switch (item.kind) {
-      WorkoutKind.counter => CounterScreen(
-        item: item,
-        date: date,
-        itemIndex: index,
-        repository: repository,
-        progress: progress,
-      ),
-      WorkoutKind.interval => TimerScreen.interval(
-        item: item,
-        date: date,
-        itemIndex: index,
-        repository: repository,
-        progress: progress,
-      ),
-      WorkoutKind.circuit => TimerScreen.circuit(
-        item: item,
-        date: date,
-        itemIndex: index,
-        repository: repository,
-        progress: progress,
-      ),
-    };
   }
 
   IconData _iconFor(WorkoutKind kind) => switch (kind) {
