@@ -11,8 +11,13 @@ import 'package:kintore/src/features/workout/workout_models.dart';
 import 'package:kintore/src/features/workout/workout_schedule.dart';
 
 GoRouter createAppRouter(WorkoutProgressRepository repository) {
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.home,
+    errorBuilder: (context, state) =>
+        _notFoundScreen('ページが見つかりません'),
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -28,6 +33,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                 routes: [
                   GoRoute(
                     path: 'timer/simple/:seconds',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) {
                       final seconds = int.tryParse(
                         state.pathParameters['seconds'] ?? '',
@@ -44,6 +50,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                   ),
                   GoRoute(
                     path: 'workout/:date/:index',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) {
                       final date = tryParseWorkoutDate(
                         state.pathParameters['date'] ?? '',
@@ -77,7 +84,9 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
 }
 
 Widget _notFoundScreen(String message) {
-  return Scaffold(body: Center(child: Text(message)));
+  return Scaffold(
+    body: SafeArea(child: Center(child: Text(message))),
+  );
 }
 
 Widget _workoutScreen(
