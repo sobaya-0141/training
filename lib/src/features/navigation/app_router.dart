@@ -29,9 +29,12 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                   GoRoute(
                     path: 'timer/simple/:seconds',
                     builder: (context, state) {
-                      final seconds = int.parse(
-                        state.pathParameters['seconds']!,
+                      final seconds = int.tryParse(
+                        state.pathParameters['seconds'] ?? '',
                       );
+                      if (seconds == null || seconds <= 0) {
+                        return _notFoundScreen('タイマーが見つかりません');
+                      }
                       final title = state.uri.queryParameters['title'] ?? '';
                       return TimerScreen.simple(
                         title: title,
@@ -42,10 +45,15 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                   GoRoute(
                     path: 'workout/:date/:index',
                     builder: (context, state) {
-                      final date = parseWorkoutDate(
-                        state.pathParameters['date']!,
+                      final date = tryParseWorkoutDate(
+                        state.pathParameters['date'] ?? '',
                       );
-                      final index = int.parse(state.pathParameters['index']!);
+                      final index = int.tryParse(
+                        state.pathParameters['index'] ?? '',
+                      );
+                      if (date == null || index == null) {
+                        return _notFoundScreen('メニューが見つかりません');
+                      }
                       return _workoutScreen(repository, date, index);
                     },
                   ),
@@ -68,6 +76,10 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
   );
 }
 
+Widget _notFoundScreen(String message) {
+  return Scaffold(body: Center(child: Text(message)));
+}
+
 Widget _workoutScreen(
   WorkoutProgressRepository repository,
   DateTime date,
@@ -75,9 +87,7 @@ Widget _workoutScreen(
 ) {
   final workout = workoutForDate(date);
   if (index < 0 || index >= workout.items.length) {
-    return const Scaffold(
-      body: Center(child: Text('メニューが見つかりません')),
-    );
+    return _notFoundScreen('メニューが見つかりません');
   }
   final item = workout.items[index];
   final progress = repository.progressFor(date, index);
