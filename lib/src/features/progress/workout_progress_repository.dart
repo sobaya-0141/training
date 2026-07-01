@@ -5,7 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 class WorkoutProgressRepository {
-  Database? _database;
+  late final Database _database;
+  bool _initialized = false;
   final Map<String, WorkoutProgress> _cache = {};
 
   Future<void> initialize() async {
@@ -28,26 +29,19 @@ class WorkoutProgressRepository {
         )
       '''),
     );
-    final rows = await _database!.query('workout_progress');
+    _initialized = true;
+    final rows = await _database.query('workout_progress');
     for (final row in rows) {
       final progress = _fromRow(row);
       _cache[_key(progress.dateKey, progress.itemIndex)] = progress;
     }
   }
 
-  WorkoutProgress? progressFor(DateTime date, int itemIndex) =>
-      _cache[_key(workoutDateKey(date), itemIndex)];
-
-  List<WorkoutProgress> progressForDate(DateTime date) {
-    final dateKey = workoutDateKey(date);
-    return _cache.values
-        .where((progress) => progress.dateKey == dateKey)
-        .toList();
-  }
+  Map<String, WorkoutProgress> snapshot() => Map.unmodifiable(_cache);
 
   Future<void> save(WorkoutProgress progress) async {
     _cache[_key(progress.dateKey, progress.itemIndex)] = progress;
-    await _database!.insert('workout_progress', {
+    await _database.insert('workout_progress', {
       'date_key': progress.dateKey,
       'item_index': progress.itemIndex,
       'status': progress.status.name,
@@ -76,6 +70,8 @@ class WorkoutProgressRepository {
   String _key(String dateKey, int itemIndex) => '$dateKey:$itemIndex';
 
   void dispose() {
-    unawaited(_database?.close());
+    if (_initialized) {
+      unawaited(_database.close());
+    }
   }
 }
