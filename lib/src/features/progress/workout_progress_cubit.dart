@@ -3,25 +3,31 @@ import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 
 class WorkoutProgressState {
-  const WorkoutProgressState({this.revision = 0});
+  const WorkoutProgressState(this._progressByKey);
 
-  final int revision;
+  final Map<String, WorkoutProgress> _progressByKey;
+
+  WorkoutProgress? progressFor(DateTime date, int itemIndex) =>
+      _progressByKey['${workoutDateKey(date)}:$itemIndex'];
+
+  List<WorkoutProgress> progressForDate(DateTime date) {
+    final dateKey = workoutDateKey(date);
+    return [
+      for (final progress in _progressByKey.values)
+        if (progress.dateKey == dateKey) progress,
+    ];
+  }
 }
 
 class WorkoutProgressCubit extends Cubit<WorkoutProgressState> {
-  WorkoutProgressCubit(this._repository) : super(const WorkoutProgressState());
+  WorkoutProgressCubit(this._repository)
+    : super(WorkoutProgressState(_repository.snapshot()));
 
   final WorkoutProgressRepository _repository;
 
-  WorkoutProgress? progressFor(DateTime date, int itemIndex) =>
-      _repository.progressFor(date, itemIndex);
-
-  List<WorkoutProgress> progressForDate(DateTime date) =>
-      _repository.progressForDate(date);
-
   Future<void> save(WorkoutProgress progress) async {
     final saveFuture = _repository.save(progress);
-    emit(WorkoutProgressState(revision: state.revision + 1));
+    emit(WorkoutProgressState(_repository.snapshot()));
     await saveFuture;
   }
 }

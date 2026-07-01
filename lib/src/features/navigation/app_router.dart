@@ -95,7 +95,7 @@ Widget _workoutScreen(
     return _notFoundScreen('メニューが見つかりません');
   }
   final item = workout.items[index];
-  final progress = progressCubit.progressFor(date, index);
+  final progress = progressCubit.state.progressFor(date, index);
   return switch (item.kind) {
     WorkoutKind.counter => CounterScreen(
       item: item,

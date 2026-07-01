@@ -30,7 +30,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return SafeArea(
       child: BlocBuilder<WorkoutProgressCubit, WorkoutProgressState>(
         bloc: widget.progressCubit,
-        builder: (context, _) => ListView(
+        builder: (context, state) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
             Text(
@@ -78,7 +78,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _CalendarGrid(
               month: _visibleMonth,
               selectedDate: _selectedDate,
-              progressCubit: widget.progressCubit,
+              progressState: state,
               onSelected: (date) => setState(() => _selectedDate = date),
             ),
             const SizedBox(height: 18),
@@ -91,7 +91,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            _DaySummary(date: _selectedDate, progressCubit: widget.progressCubit),
+            _DaySummary(date: _selectedDate, progressState: state),
           ],
         ),
       ),
@@ -113,13 +113,13 @@ class _CalendarGrid extends StatelessWidget {
   const _CalendarGrid({
     required this.month,
     required this.selectedDate,
-    required this.progressCubit,
+    required this.progressState,
     required this.onSelected,
   });
 
   final DateTime month;
   final DateTime selectedDate;
-  final WorkoutProgressCubit progressCubit;
+  final WorkoutProgressState progressState;
   final ValueChanged<DateTime> onSelected;
 
   @override
@@ -139,7 +139,7 @@ class _CalendarGrid extends StatelessWidget {
         final date = gridStart.add(Duration(days: index));
         final isCurrentMonth = date.month == month.month;
         final selected = workoutDateKey(date) == workoutDateKey(selectedDate);
-        final status = _statusFor(date, progressCubit);
+        final status = _statusFor(date, progressState);
         final color = switch (status) {
           WorkoutProgressStatus.completed => Colors.green,
           WorkoutProgressStatus.inProgress => Colors.orange,
@@ -175,15 +175,15 @@ class _CalendarGrid extends StatelessWidget {
 }
 
 class _DaySummary extends StatelessWidget {
-  const _DaySummary({required this.date, required this.progressCubit});
+  const _DaySummary({required this.date, required this.progressState});
 
   final DateTime date;
-  final WorkoutProgressCubit progressCubit;
+  final WorkoutProgressState progressState;
 
   @override
   Widget build(BuildContext context) {
     final workout = workoutForDate(date);
-    final progress = progressCubit.progressForDate(date);
+    final progress = progressState.progressForDate(date);
     final completed = progress
         .where((item) => item.status == WorkoutProgressStatus.completed)
         .length;
@@ -242,10 +242,10 @@ class _LegendDot extends StatelessWidget {
 
 WorkoutProgressStatus _statusFor(
   DateTime date,
-  WorkoutProgressCubit progressCubit,
+  WorkoutProgressState progressState,
 ) {
   final itemCount = workoutForDate(date).items.length;
-  final progress = progressCubit.progressForDate(date);
+  final progress = progressState.progressForDate(date);
   if (itemCount > 0 &&
       progress
               .where((item) => item.status == WorkoutProgressStatus.completed)

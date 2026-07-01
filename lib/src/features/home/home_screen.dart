@@ -25,10 +25,10 @@ class HomeScreen extends StatelessWidget {
     return SafeArea(
       child: BlocBuilder<WorkoutProgressCubit, WorkoutProgressState>(
         bloc: progressCubit,
-        builder: (context, _) => _HomeContent(
+        builder: (context, state) => _HomeContent(
           date: date,
           workout: workout,
-          progressCubit: progressCubit,
+          progressState: state,
         ),
       ),
     );
@@ -39,12 +39,12 @@ class _HomeContent extends StatelessWidget {
   const _HomeContent({
     required this.date,
     required this.workout,
-    this.progressCubit,
+    this.progressState,
   });
 
   final DateTime date;
   final DailyWorkout workout;
-  final WorkoutProgressCubit? progressCubit;
+  final WorkoutProgressState? progressState;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +86,7 @@ class _HomeContent extends StatelessWidget {
                 item: workout.items[index],
                 index: index,
                 date: date,
-                progressCubit: progressCubit,
+                progress: progressState?.progressFor(date, index),
               ),
               separatorBuilder: (_, _) => const SizedBox(height: 12),
             ),

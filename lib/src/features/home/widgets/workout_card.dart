@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kintore/src/features/navigation/app_routes.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
-import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 
 class WorkoutCard extends StatelessWidget {
@@ -10,18 +9,17 @@ class WorkoutCard extends StatelessWidget {
     required this.item,
     required this.index,
     required this.date,
-    this.progressCubit,
+    this.progress,
     super.key,
   });
 
   final WorkoutItem item;
   final int index;
   final DateTime date;
-  final WorkoutProgressCubit? progressCubit;
+  final WorkoutProgress? progress;
 
   @override
   Widget build(BuildContext context) {
-    final progress = progressCubit?.progressFor(date, index);
     final status = progress?.status ?? WorkoutProgressStatus.notStarted;
     final statusColor = switch (status) {
       WorkoutProgressStatus.completed => Colors.green,
