@@ -31,6 +31,7 @@ class _KintoreAppState extends State<KintoreApp> {
         if (snapshot.connectionState != ConnectionState.done) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
+            title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
             home: const Scaffold(
@@ -41,6 +42,7 @@ class _KintoreAppState extends State<KintoreApp> {
         if (snapshot.hasError) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
+            title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
             home: const Scaffold(
