@@ -125,7 +125,9 @@ class TrainingTimerCubit extends Cubit<TrainingTimerState> {
       } else {
         final remaining = state.remainingSeconds - 1;
         emit(state.copyWith(remainingSeconds: remaining));
-        if (state.phase == TimerPhase.preparing && remaining <= 3) {
+        if (remaining <= 3 &&
+            (state.phase == TimerPhase.preparing ||
+                state.phase == TimerPhase.rest)) {
           onCue?.call(TimerCue.countdown);
         }
       }
