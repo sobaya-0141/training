@@ -20,7 +20,8 @@ class WorkoutProgressCubit extends Cubit<WorkoutProgressState> {
       _repository.progressForDate(date);
 
   Future<void> save(WorkoutProgress progress) async {
-    await _repository.save(progress);
+    final saveFuture = _repository.save(progress);
     emit(WorkoutProgressState(revision: state.revision + 1));
+    await saveFuture;
   }
 }

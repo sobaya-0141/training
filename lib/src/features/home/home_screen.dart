@@ -17,14 +17,19 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final date = now ?? DateTime.now();
     final workout = workoutForDate(date);
-    final content = _HomeContent(date: date, workout: workout, progressCubit: progressCubit);
     if (progressCubit == null) {
-      return SafeArea(child: content);
+      return SafeArea(
+        child: _HomeContent(date: date, workout: workout),
+      );
     }
     return SafeArea(
       child: BlocBuilder<WorkoutProgressCubit, WorkoutProgressState>(
         bloc: progressCubit,
-        builder: (context, _) => content,
+        builder: (context, _) => _HomeContent(
+          date: date,
+          workout: workout,
+          progressCubit: progressCubit,
+        ),
       ),
     );
   }
