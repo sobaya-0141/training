@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kintore/src/features/counter/counter_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cubit.dart';
 import 'package:kintore/src/features/timer/timer_cue_player.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
@@ -16,7 +16,7 @@ class CounterScreen extends StatelessWidget {
     required this.item,
     this.date,
     this.itemIndex,
-    this.repository,
+    this.progressCubit,
     this.progress,
     this.onSetTimerCue,
     super.key,
@@ -25,7 +25,7 @@ class CounterScreen extends StatelessWidget {
   final WorkoutItem item;
   final DateTime? date;
   final int? itemIndex;
-  final WorkoutProgressRepository? repository;
+  final WorkoutProgressCubit? progressCubit;
   final WorkoutProgress? progress;
   final void Function(TimerCue cue)? onSetTimerCue;
 
@@ -46,11 +46,11 @@ class CounterScreen extends StatelessWidget {
           appBar: AppBar(title: Text(item.name)),
           body: BlocListener<CounterCubit, CounterState>(
             listener: (_, state) {
-              if (repository == null || date == null || itemIndex == null) {
+              if (progressCubit == null || date == null || itemIndex == null) {
                 return;
               }
               final complete = state.completedSets >= item.totalSets;
-              repository!.save(
+              progressCubit!.save(
                 WorkoutProgress(
                   dateKey: workoutDateKey(date!),
                   itemIndex: itemIndex!,

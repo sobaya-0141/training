@@ -5,14 +5,13 @@ import 'package:kintore/src/features/counter/counter_screen.dart';
 import 'package:kintore/src/features/home/home_screen.dart';
 import 'package:kintore/src/features/navigation/app_router.dart';
 import 'package:kintore/src/features/navigation/app_routes.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/features/timer/timer_screen.dart';
 
 void main() {
   Future<void> pumpRouter(WidgetTester tester, GoRouter router) async {
-    await tester.pumpWidget(
-      MaterialApp.router(routerConfig: router),
-    );
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
   }
 
@@ -23,8 +22,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     await pumpRouter(tester, router);
@@ -42,8 +43,10 @@ void main() {
 
   testWidgets('有効なワークアウトURLでカウンター画面へ遷移する', (tester) async {
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     router.go(AppRoutes.workout(DateTime(2026, 6, 16), 0));
@@ -62,8 +65,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     router.go(AppRoutes.workout(DateTime(2026, 6, 16), 3));
@@ -76,8 +81,10 @@ void main() {
 
   testWidgets('不正なタイマーURLはエラー画面を表示する', (tester) async {
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     router.go('/timer/simple/abc');
@@ -88,8 +95,10 @@ void main() {
 
   testWidgets('不正なワークアウトURLはエラー画面を表示する', (tester) async {
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     router.go('/workout/invalid-date/not-a-number');
@@ -100,8 +109,10 @@ void main() {
 
   testWidgets('未定義のパスはエラー画面を表示する', (tester) async {
     final repository = WorkoutProgressRepository();
-    final router = createAppRouter(repository);
+    final progressCubit = WorkoutProgressCubit(repository);
+    final router = createAppRouter(progressCubit);
     addTearDown(router.dispose);
+    addTearDown(progressCubit.close);
     addTearDown(repository.dispose);
 
     router.go('/unknown-path');

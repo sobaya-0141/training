@@ -5,19 +5,18 @@ import 'package:kintore/src/features/counter/counter_screen.dart';
 import 'package:kintore/src/features/home/home_screen.dart';
 import 'package:kintore/src/features/navigation/app_routes.dart';
 import 'package:kintore/src/features/navigation/main_shell.dart';
-import 'package:kintore/src/features/progress/workout_progress_repository.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/timer/timer_screen.dart';
 import 'package:kintore/src/features/workout/workout_models.dart';
 import 'package:kintore/src/features/workout/workout_schedule.dart';
 
-GoRouter createAppRouter(WorkoutProgressRepository repository) {
+GoRouter createAppRouter(WorkoutProgressCubit progressCubit) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.home,
-    errorBuilder: (context, state) =>
-        _notFoundScreen('ページが見つかりません'),
+    errorBuilder: (context, state) => _notFoundScreen('ページが見つかりません'),
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -29,7 +28,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
               GoRoute(
                 path: AppRoutes.home,
                 builder: (context, state) =>
-                    HomeScreen(repository: repository),
+                    HomeScreen(progressCubit: progressCubit),
                 routes: [
                   GoRoute(
                     path: 'timer/simple/:seconds',
@@ -42,10 +41,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                         return _notFoundScreen('タイマーが見つかりません');
                       }
                       final title = state.uri.queryParameters['title'] ?? '';
-                      return TimerScreen.simple(
-                        title: title,
-                        seconds: seconds,
-                      );
+                      return TimerScreen.simple(title: title, seconds: seconds);
                     },
                   ),
                   GoRoute(
@@ -61,7 +57,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
                       if (date == null || index == null) {
                         return _notFoundScreen('メニューが見つかりません');
                       }
-                      return _workoutScreen(repository, date, index);
+                      return _workoutScreen(progressCubit, date, index);
                     },
                   ),
                 ],
@@ -73,7 +69,7 @@ GoRouter createAppRouter(WorkoutProgressRepository repository) {
               GoRoute(
                 path: AppRoutes.calendar,
                 builder: (context, state) =>
-                    CalendarScreen(repository: repository),
+                    CalendarScreen(progressCubit: progressCubit),
               ),
             ],
           ),
@@ -90,7 +86,7 @@ Widget _notFoundScreen(String message) {
 }
 
 Widget _workoutScreen(
-  WorkoutProgressRepository repository,
+  WorkoutProgressCubit progressCubit,
   DateTime date,
   int index,
 ) {
@@ -99,27 +95,27 @@ Widget _workoutScreen(
     return _notFoundScreen('メニューが見つかりません');
   }
   final item = workout.items[index];
-  final progress = repository.progressFor(date, index);
+  final progress = progressCubit.progressFor(date, index);
   return switch (item.kind) {
     WorkoutKind.counter => CounterScreen(
       item: item,
       date: date,
       itemIndex: index,
-      repository: repository,
+      progressCubit: progressCubit,
       progress: progress,
     ),
     WorkoutKind.interval => TimerScreen.interval(
       item: item,
       date: date,
       itemIndex: index,
-      repository: repository,
+      progressCubit: progressCubit,
       progress: progress,
     ),
     WorkoutKind.circuit => TimerScreen.circuit(
       item: item,
       date: date,
       itemIndex: index,
-      repository: repository,
+      progressCubit: progressCubit,
       progress: progress,
     ),
   };

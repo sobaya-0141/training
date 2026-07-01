@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kintore/src/features/navigation/app_router.dart';
+import 'package:kintore/src/features/progress/workout_progress_cubit.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 import 'package:kintore/src/theme/app_theme.dart';
 
@@ -14,11 +16,13 @@ class KintoreApp extends StatefulWidget {
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
   late final Future<void> _initialization = _repository.initialize();
+  WorkoutProgressCubit? _progressCubit;
   GoRouter? _router;
 
   @override
   void dispose() {
     _router?.dispose();
+    _progressCubit?.close();
     _repository.dispose();
     super.dispose();
   }
@@ -45,19 +49,23 @@ class _KintoreAppState extends State<KintoreApp> {
             title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            home: const Scaffold(
-              body: Center(child: Text('データベースを開けませんでした')),
-            ),
+            home: const Scaffold(body: Center(child: Text('データベースを開けませんでした'))),
           );
         }
-        final router = _router ?? createAppRouter(_repository);
+        final progressCubit =
+            _progressCubit ?? WorkoutProgressCubit(_repository);
+        _progressCubit = progressCubit;
+        final router = _router ?? createAppRouter(progressCubit);
         _router = router;
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'Kintore',
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          routerConfig: router,
+        return BlocProvider.value(
+          value: progressCubit,
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'Kintore',
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            routerConfig: router,
+          ),
         );
       },
     );
