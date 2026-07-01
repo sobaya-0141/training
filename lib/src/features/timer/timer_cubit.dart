@@ -141,7 +141,8 @@ class TrainingTimerCubit extends Cubit<TrainingTimerState> {
       _startTicker();
       return;
     }
-    if (state.phase == TimerPhase.work && restSeconds > 0) {
+    final isLastRound = state.roundIndex >= roundTitles.length - 1;
+    if (state.phase == TimerPhase.work && restSeconds > 0 && !isLastRound) {
       onCue?.call(TimerCue.stop);
       emit(
         state.copyWith(phase: TimerPhase.rest, remainingSeconds: restSeconds),
