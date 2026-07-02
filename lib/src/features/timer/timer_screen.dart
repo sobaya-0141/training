@@ -8,6 +8,16 @@ import 'package:kintore/src/features/workout/workout_models.dart';
 import 'package:kintore/src/screen_wake_lock.dart';
 import 'package:kintore/src/utils/format.dart';
 
+/// サーキットの種目順を生成する。
+/// 1セット目の全種目 → 2セット目の全種目 … の順に並べる。
+List<String> circuitRoundTitles(WorkoutItem item) {
+  return [
+    for (var set = 1; set <= item.rounds; set++)
+      for (final exercise in item.circuitExercises)
+        '$exercise　セット $set / ${item.rounds}',
+  ];
+}
+
 class TimerScreen extends StatefulWidget {
   const TimerScreen._({
     required this.title,
@@ -63,11 +73,7 @@ class TimerScreen extends StatefulWidget {
       title: item.name,
       workSeconds: item.workSeconds,
       restSeconds: item.restSeconds,
-      roundTitles: [
-        for (var set = 1; set <= item.rounds; set++)
-          for (final exercise in item.circuitExercises)
-            '$exercise　セット $set / ${item.rounds}',
-      ],
+      roundTitles: circuitRoundTitles(item),
       previewExercises: item.circuitExercises,
       date: date,
       itemIndex: itemIndex,
@@ -92,54 +98,33 @@ class TimerScreen extends StatefulWidget {
 
 class _TimerScreenState extends State<TimerScreen> {
   final _cuePlayer = TimerCuePlayer();
+  late final TrainingTimerCubit _timerCubit;
 
   @override
   void initState() {
     super.initState();
     _cuePlayer.warmUp();
+    _timerCubit = TrainingTimerCubit(
+      workSeconds: widget.workSeconds,
+      restSeconds: widget.restSeconds,
+      roundTitles: widget.roundTitles,
+      initialState: _restoredTimerState(widget),
+      onCue: _cuePlayer.play,
+    );
   }
 
   @override
   void dispose() {
+    _timerCubit.close();
     _cuePlayer.release();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final restoredPhase = widget.progress?.timerPhase == null
-        ? null
-        : TimerPhase.values.byName(widget.progress!.timerPhase!);
-    final restoredRound = (widget.progress?.roundIndex ?? 0).clamp(
-      0,
-      widget.roundTitles.length - 1,
-    );
-    final initialState = widget.progress == null
-        ? null
-        : TrainingTimerState(
-            phase: restoredPhase == TimerPhase.completed
-                ? TimerPhase.completed
-                : TimerPhase.paused,
-            previousPhase:
-                restoredPhase == null ||
-                    restoredPhase == TimerPhase.ready ||
-                    restoredPhase == TimerPhase.paused
-                ? TimerPhase.work
-                : restoredPhase,
-            remainingSeconds: widget.progress!.remainingSeconds,
-            roundIndex: restoredRound,
-            totalRounds: widget.roundTitles.length,
-            title: widget.roundTitles[restoredRound],
-          );
     return KeepScreenOn(
-      child: BlocProvider(
-        create: (_) => TrainingTimerCubit(
-          workSeconds: widget.workSeconds,
-          restSeconds: widget.restSeconds,
-          roundTitles: widget.roundTitles,
-          initialState: initialState,
-          onCue: _cuePlayer.play,
-        ),
+      child: BlocProvider.value(
+        value: _timerCubit,
         child: Scaffold(
           appBar: AppBar(title: Text(widget.title)),
           body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
@@ -387,6 +372,35 @@ String _phaseLabel(TimerPhase phase) => switch (phase) {
   TimerPhase.paused => 'PAUSE',
   TimerPhase.completed => 'COMPLETE',
 };
+
+TrainingTimerState? _restoredTimerState(TimerScreen widget) {
+  final progress = widget.progress;
+  if (progress == null) {
+    return null;
+  }
+  final restoredPhase = progress.timerPhase == null
+      ? null
+      : TimerPhase.values.byName(progress.timerPhase!);
+  final restoredRound = progress.roundIndex.clamp(
+    0,
+    widget.roundTitles.length - 1,
+  );
+  return TrainingTimerState(
+    phase: restoredPhase == TimerPhase.completed
+        ? TimerPhase.completed
+        : TimerPhase.paused,
+    previousPhase:
+        restoredPhase == null ||
+            restoredPhase == TimerPhase.ready ||
+            restoredPhase == TimerPhase.paused
+        ? TimerPhase.work
+        : restoredPhase,
+    remainingSeconds: progress.remainingSeconds,
+    roundIndex: restoredRound,
+    totalRounds: widget.roundTitles.length,
+    title: widget.roundTitles[restoredRound],
+  );
+}
 
 double _pausedProgress(TrainingTimerState state, TrainingTimerCubit cubit) {
   final total = switch (state.previousPhase) {
