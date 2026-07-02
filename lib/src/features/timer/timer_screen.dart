@@ -11,11 +11,37 @@ import 'package:kintore/src/utils/format.dart';
 /// サーキットの種目順を生成する。
 /// 1セット目の全種目 → 2セット目の全種目 … の順に並べる。
 List<String> circuitRoundTitles(WorkoutItem item) {
+  if (item.rounds <= 0) {
+    throw ArgumentError.value(
+      item.rounds,
+      'rounds',
+      'circuitRoundTitles requires rounds > 0',
+    );
+  }
+  if (item.circuitExercises.isEmpty) {
+    throw ArgumentError.value(
+      item.circuitExercises,
+      'circuitExercises',
+      'circuitRoundTitles requires at least one exercise',
+    );
+  }
   return [
     for (var set = 1; set <= item.rounds; set++)
       for (final exercise in item.circuitExercises)
         '$exercise　セット $set / ${item.rounds}',
   ];
+}
+
+/// 休憩中は次ラウンドの種目名を表示する。
+String timerDisplayTitle(TrainingTimerState state, List<String> roundTitles) {
+  final showsUpcoming =
+      state.phase == TimerPhase.rest ||
+      (state.phase == TimerPhase.paused &&
+          state.previousPhase == TimerPhase.rest);
+  if (showsUpcoming && state.roundIndex < roundTitles.length - 1) {
+    return roundTitles[state.roundIndex + 1];
+  }
+  return state.title;
 }
 
 class TimerScreen extends StatefulWidget {
@@ -104,6 +130,7 @@ class _TimerScreenState extends State<TimerScreen> {
   void initState() {
     super.initState();
     _cuePlayer.warmUp();
+    _requireNonEmptyRoundTitles(widget.roundTitles);
     _timerCubit = TrainingTimerCubit(
       workSeconds: widget.workSeconds,
       restSeconds: widget.restSeconds,
@@ -194,7 +221,7 @@ class TimerBody extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  state.title,
+                  timerDisplayTitle(state, cubit.roundTitles),
                   key: const ValueKey('current_exercise_label'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -372,6 +399,16 @@ String _phaseLabel(TimerPhase phase) => switch (phase) {
   TimerPhase.paused => 'PAUSE',
   TimerPhase.completed => 'COMPLETE',
 };
+
+void _requireNonEmptyRoundTitles(List<String> roundTitles) {
+  if (roundTitles.isEmpty) {
+    throw ArgumentError.value(
+      roundTitles,
+      'roundTitles',
+      'TimerScreen requires at least one round title',
+    );
+  }
+}
 
 TrainingTimerState? _restoredTimerState(TimerScreen widget) {
   final progress = widget.progress;
