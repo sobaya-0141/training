@@ -3,17 +3,17 @@ import 'package:kintore/src/features/counter/counter_cubit.dart';
 
 void main() {
   group('CounterCubit', () {
-    test('完了したセット数だけを増やす', () {
+    test('完了したセット数だけを増やす', () async {
       final cubit = CounterCubit(totalSets: 3);
 
       cubit.incrementSet();
       cubit.incrementSet();
 
       expect(cubit.state.completedSets, 2);
-      cubit.close();
+      await cubit.close();
     });
 
-    test('セット数は上限を超えず、取り消せる', () {
+    test('セット数は上限を超えず、取り消せる', () async {
       final cubit = CounterCubit(totalSets: 2);
 
       cubit.incrementSet();
@@ -22,7 +22,7 @@ void main() {
       cubit.decrementSet();
 
       expect(cubit.state.completedSets, 1);
-      cubit.close();
+      await cubit.close();
     });
   });
 }
