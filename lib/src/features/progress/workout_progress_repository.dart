@@ -7,11 +7,12 @@ import 'package:sqflite/sqflite.dart';
 class WorkoutProgressRepository {
   late final Database _database;
   bool _initialized = false;
+  bool _disposed = false;
   final Map<String, WorkoutProgress> _cache = {};
 
   Future<void> initialize() async {
     final databasePath = await getDatabasesPath();
-    _database = await openDatabase(
+    final database = await openDatabase(
       p.join(databasePath, 'kintore.db'),
       version: 1,
       onCreate: (db, _) => db.execute('''
@@ -29,6 +30,12 @@ class WorkoutProgressRepository {
         )
       '''),
     );
+    if (_disposed) {
+      // DBを開いている間にdisposeされた場合、開いたDBはここで閉じる。
+      await database.close();
+      return;
+    }
+    _database = database;
     _initialized = true;
     final rows = await _database.query('workout_progress');
     for (final row in rows) {
@@ -70,6 +77,8 @@ class WorkoutProgressRepository {
   String _key(String dateKey, int itemIndex) => '$dateKey:$itemIndex';
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     if (_initialized) {
       unawaited(_database.close());
     }

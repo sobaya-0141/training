@@ -30,9 +30,8 @@ class _KintoreAppState extends State<KintoreApp> {
   Future<void> _initialize() async {
     await _repository.initialize();
     if (!mounted) {
-      // 初期化完了前にdisposeされた場合、dispose()側では未初期化扱いで
-      // DBが閉じられていないため、ここで閉じて終了する。
-      _repository.dispose();
+      // 初期化完了前にdisposeされた場合は何も生成しない。
+      // 開いたDBの後始末はRepository側(dispose済みフラグ)が行う。
       return;
     }
     // ここから先は同期処理なので、途中でdisposeが割り込むことはない。
@@ -42,7 +41,7 @@ class _KintoreAppState extends State<KintoreApp> {
       // フィールドへの代入は全体が成功してからまとめて行う。
       _progressCubit = progressCubit;
       _router = router;
-    } catch (error) {
+    } catch (_) {
       // Router生成に失敗した場合、Cubitはどこからも参照されないまま
       // 残ってしまうため、ここで確実にcloseする。
       await progressCubit.close();
