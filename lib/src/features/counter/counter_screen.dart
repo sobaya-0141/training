@@ -34,11 +34,8 @@ class CounterScreen extends StatelessWidget {
     return KeepScreenOn(
       child: BlocProvider(
         create: (_) => CounterCubit(
-          repsPerSet: item.reps,
           totalSets: item.totalSets,
-          step: item.countStep,
           initialState: CounterState(
-            reps: progress?.reps ?? 0,
             completedSets: progress?.completedSets ?? 0,
           ),
         ),
@@ -57,7 +54,6 @@ class CounterScreen extends StatelessWidget {
                   status: complete
                       ? WorkoutProgressStatus.completed
                       : WorkoutProgressStatus.inProgress,
-                  reps: state.reps,
                   completedSets: state.completedSets,
                 ),
               );

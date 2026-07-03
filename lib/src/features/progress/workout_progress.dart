@@ -5,7 +5,6 @@ class WorkoutProgress {
     required this.dateKey,
     required this.itemIndex,
     required this.status,
-    this.reps = 0,
     this.completedSets = 0,
     this.timerPhase,
     this.remainingSeconds = 0,
@@ -15,7 +14,6 @@ class WorkoutProgress {
   final String dateKey;
   final int itemIndex;
   final WorkoutProgressStatus status;
-  final int reps;
   final int completedSets;
   final String? timerPhase;
   final int remainingSeconds;
