@@ -142,9 +142,35 @@ class _TimerScreenState extends State<TimerScreen> {
 
   @override
   void dispose() {
+    // 先にタイマーを止めてから、画面離脱時点の残り秒数を保存する
+    // (途中離脱→再入場時の復元用)。
     _timerCubit.close();
+    _saveProgress(_timerCubit.state);
     _cuePlayer.release();
     super.dispose();
+  }
+
+  void _saveProgress(TrainingTimerState state) {
+    if (widget.progressCubit == null ||
+        widget.date == null ||
+        widget.itemIndex == null) {
+      return;
+    }
+    if (state.phase == TimerPhase.ready) return;
+    widget.progressCubit!.save(
+      WorkoutProgress(
+        dateKey: workoutDateKey(widget.date!),
+        itemIndex: widget.itemIndex!,
+        status: state.isComplete
+            ? WorkoutProgressStatus.completed
+            : WorkoutProgressStatus.inProgress,
+        timerPhase: state.phase == TimerPhase.paused
+            ? state.previousPhase.name
+            : state.phase.name,
+        remainingSeconds: state.remainingSeconds,
+        roundIndex: state.roundIndex,
+      ),
+    );
   }
 
   @override
@@ -155,28 +181,12 @@ class _TimerScreenState extends State<TimerScreen> {
         child: Scaffold(
           appBar: AppBar(title: Text(widget.title)),
           body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
-            listener: (_, state) {
-              if (widget.progressCubit == null ||
-                  widget.date == null ||
-                  widget.itemIndex == null) {
-                return;
-              }
-              if (state.phase == TimerPhase.ready) return;
-              widget.progressCubit!.save(
-                WorkoutProgress(
-                  dateKey: workoutDateKey(widget.date!),
-                  itemIndex: widget.itemIndex!,
-                  status: state.isComplete
-                      ? WorkoutProgressStatus.completed
-                      : WorkoutProgressStatus.inProgress,
-                  timerPhase: state.phase == TimerPhase.paused
-                      ? state.previousPhase.name
-                      : state.phase.name,
-                  remainingSeconds: state.remainingSeconds,
-                  roundIndex: state.roundIndex,
-                ),
-              );
-            },
+            // 毎秒のカウントダウンでは保存せず、フェーズやラウンドの
+            // 切り替わりだけ永続化する(毎秒のDB書き込みと再描画を防ぐ)。
+            listenWhen: (previous, current) =>
+                previous.phase != current.phase ||
+                previous.roundIndex != current.roundIndex,
+            listener: (_, state) => _saveProgress(state),
             child: TimerBody(previewExercises: widget.previewExercises),
           ),
         ),
