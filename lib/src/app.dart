@@ -15,14 +15,27 @@ class KintoreApp extends StatefulWidget {
 
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
-  late final Future<void> _initialization = _initialize();
+  late final Future<void> _initialization;
   WorkoutProgressCubit? _progressCubit;
   GoRouter? _router;
 
-  // buildの外で依存関係を組み立てる。buildは何度でも呼ばれうるため、
-  // オブジェクトの生成や代入といった副作用を持たせない。
+  @override
+  void initState() {
+    super.initState();
+    // buildは何度でも呼ばれうるため、初期化はinitStateから開始し、
+    // buildには副作用を持たせない。
+    _initialization = _initialize();
+  }
+
   Future<void> _initialize() async {
     await _repository.initialize();
+    if (!mounted) {
+      // 初期化完了前にdisposeされた場合、dispose()側では未初期化扱いで
+      // DBが閉じられていないため、ここで閉じて終了する。
+      _repository.dispose();
+      return;
+    }
+    // ここから先は同期処理なので、途中でdisposeが割り込むことはない。
     final progressCubit = WorkoutProgressCubit(_repository);
     try {
       final router = createAppRouter(progressCubit);
