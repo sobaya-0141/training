@@ -92,79 +92,96 @@ class TimerScreen extends StatefulWidget {
 
 class _TimerScreenState extends State<TimerScreen> {
   final _cuePlayer = TimerCuePlayer();
+  late final TrainingTimerCubit _timerCubit;
 
   @override
   void initState() {
     super.initState();
     _cuePlayer.warmUp();
+    _timerCubit = TrainingTimerCubit(
+      workSeconds: widget.workSeconds,
+      restSeconds: widget.restSeconds,
+      roundTitles: widget.roundTitles,
+      initialState: _restoredState(),
+      onCue: _cuePlayer.play,
+    );
   }
 
   @override
   void dispose() {
+    // 画面を離れるときに最新の残り秒数まで保存しておき、再開時に復元できるようにする。
+    _saveProgress(_timerCubit.state);
+    _timerCubit.close();
     _cuePlayer.release();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final restoredPhase = widget.progress?.timerPhase == null
+  TrainingTimerState? _restoredState() {
+    final progress = widget.progress;
+    if (progress == null) {
+      return null;
+    }
+    final restoredPhase = progress.timerPhase == null
         ? null
-        : TimerPhase.values.byName(widget.progress!.timerPhase!);
-    final restoredRound = (widget.progress?.roundIndex ?? 0).clamp(
+        : TimerPhase.values.byName(progress.timerPhase!);
+    final restoredRound = progress.roundIndex.clamp(
       0,
       widget.roundTitles.length - 1,
     );
-    final initialState = widget.progress == null
-        ? null
-        : TrainingTimerState(
-            phase: restoredPhase == TimerPhase.completed
-                ? TimerPhase.completed
-                : TimerPhase.paused,
-            previousPhase:
-                restoredPhase == null ||
-                    restoredPhase == TimerPhase.ready ||
-                    restoredPhase == TimerPhase.paused
-                ? TimerPhase.work
-                : restoredPhase,
-            remainingSeconds: widget.progress!.remainingSeconds,
-            roundIndex: restoredRound,
-            totalRounds: widget.roundTitles.length,
-            title: widget.roundTitles[restoredRound],
-          );
+    return TrainingTimerState(
+      phase: restoredPhase == TimerPhase.completed
+          ? TimerPhase.completed
+          : TimerPhase.paused,
+      previousPhase:
+          restoredPhase == null ||
+              restoredPhase == TimerPhase.ready ||
+              restoredPhase == TimerPhase.paused
+          ? TimerPhase.work
+          : restoredPhase,
+      remainingSeconds: progress.remainingSeconds,
+      roundIndex: restoredRound,
+      totalRounds: widget.roundTitles.length,
+      title: widget.roundTitles[restoredRound],
+    );
+  }
+
+  void _saveProgress(TrainingTimerState state) {
+    if (widget.progressCubit == null ||
+        widget.date == null ||
+        widget.itemIndex == null) {
+      return;
+    }
+    if (state.phase == TimerPhase.ready) return;
+    widget.progressCubit!.save(
+      WorkoutProgress(
+        dateKey: workoutDateKey(widget.date!),
+        itemIndex: widget.itemIndex!,
+        status: state.isComplete
+            ? WorkoutProgressStatus.completed
+            : WorkoutProgressStatus.inProgress,
+        timerPhase: state.phase == TimerPhase.paused
+            ? state.previousPhase.name
+            : state.phase.name,
+        remainingSeconds: state.remainingSeconds,
+        roundIndex: state.roundIndex,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return KeepScreenOn(
-      child: BlocProvider(
-        create: (_) => TrainingTimerCubit(
-          workSeconds: widget.workSeconds,
-          restSeconds: widget.restSeconds,
-          roundTitles: widget.roundTitles,
-          initialState: initialState,
-          onCue: _cuePlayer.play,
-        ),
+      child: BlocProvider.value(
+        value: _timerCubit,
         child: Scaffold(
           appBar: AppBar(title: Text(widget.title)),
           body: BlocListener<TrainingTimerCubit, TrainingTimerState>(
-            listener: (_, state) {
-              if (widget.progressCubit == null ||
-                  widget.date == null ||
-                  widget.itemIndex == null) {
-                return;
-              }
-              if (state.phase == TimerPhase.ready) return;
-              widget.progressCubit!.save(
-                WorkoutProgress(
-                  dateKey: workoutDateKey(widget.date!),
-                  itemIndex: widget.itemIndex!,
-                  status: state.isComplete
-                      ? WorkoutProgressStatus.completed
-                      : WorkoutProgressStatus.inProgress,
-                  timerPhase: state.phase == TimerPhase.paused
-                      ? state.previousPhase.name
-                      : state.phase.name,
-                  remainingSeconds: state.remainingSeconds,
-                  roundIndex: state.roundIndex,
-                ),
-              );
-            },
+            // 毎秒のカウントダウンでは保存せず、フェーズやラウンドの
+            // 切り替わりだけ永続化する(毎秒のDB書き込みと再描画を防ぐ)。
+            listenWhen: (previous, current) =>
+                previous.phase != current.phase ||
+                previous.roundIndex != current.roundIndex,
+            listener: (_, state) => _saveProgress(state),
             child: TimerBody(previewExercises: widget.previewExercises),
           ),
         ),
