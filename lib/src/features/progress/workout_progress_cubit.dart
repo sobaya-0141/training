@@ -19,7 +19,11 @@ class WorkoutProgressState {
     for (final progress in progressByKey.values) {
       grouped.putIfAbsent(progress.dateKey, () => []).add(progress);
     }
-    return grouped;
+    // 呼び出し側が内部キャッシュを変更できないよう、不変にしてから公開する。
+    return {
+      for (final entry in grouped.entries)
+        entry.key: List.unmodifiable(entry.value),
+    };
   }
 
   WorkoutProgress? progressFor(DateTime date, int itemIndex) =>
