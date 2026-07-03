@@ -6,12 +6,21 @@ import 'package:sqflite/sqflite.dart';
 
 class WorkoutProgressRepository {
   late final Database _database;
+  Future<void>? _initialization;
   bool _initialized = false;
+  bool _disposed = false;
   final Map<String, WorkoutProgress> _cache = {};
 
-  Future<void> initialize() async {
+  // 複数回(並行含む)呼ばれても初期化が一度しか走らないよう、
+  // 初回のFutureをメモ化して返す(TimerCuePlayerと同じパターン)。
+  Future<void> initialize() => _initialization ??= _initialize();
+
+  Future<void> _initialize() async {
+    if (_disposed) {
+      return;
+    }
     final databasePath = await getDatabasesPath();
-    _database = await openDatabase(
+    final database = await openDatabase(
       p.join(databasePath, 'kintore.db'),
       version: 1,
       onCreate: (db, _) => db.execute('''
@@ -29,8 +38,21 @@ class WorkoutProgressRepository {
         )
       '''),
     );
+    if (_disposed) {
+      // DBを開いている間にdisposeされた場合、開いたDBはここで閉じる。
+      await database.close();
+      return;
+    }
+    final rows = await database.query('workout_progress');
+    if (_disposed) {
+      // キャッシュ読み込み中にdisposeされた場合も同様にここで閉じる。
+      // _initializedを立てるのは読み込み完了後なので、dispose()側が
+      // 進行中のqueryのDBを閉じてしまうことはない。
+      await database.close();
+      return;
+    }
+    _database = database;
     _initialized = true;
-    final rows = await _database.query('workout_progress');
     for (final row in rows) {
       final progress = _fromRow(row);
       _cache[_key(progress.dateKey, progress.itemIndex)] = progress;
@@ -68,6 +90,8 @@ class WorkoutProgressRepository {
   String _key(String dateKey, int itemIndex) => '$dateKey:$itemIndex';
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     if (_initialized) {
       unawaited(_database.close());
     }

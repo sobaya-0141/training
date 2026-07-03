@@ -15,9 +15,39 @@ class KintoreApp extends StatefulWidget {
 
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
-  late final Future<void> _initialization = _repository.initialize();
+  late final Future<void> _initialization;
   WorkoutProgressCubit? _progressCubit;
   GoRouter? _router;
+
+  @override
+  void initState() {
+    super.initState();
+    // buildは何度でも呼ばれうるため、初期化はinitStateから開始し、
+    // buildには副作用を持たせない。
+    _initialization = _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await _repository.initialize();
+    if (!mounted) {
+      // 初期化完了前にdisposeされた場合は何も生成しない。
+      // 開いたDBの後始末はRepository側(dispose済みフラグ)が行う。
+      return;
+    }
+    // ここから先は同期処理なので、途中でdisposeが割り込むことはない。
+    final progressCubit = WorkoutProgressCubit(_repository);
+    try {
+      final router = createAppRouter(progressCubit);
+      // フィールドへの代入は全体が成功してからまとめて行う。
+      _progressCubit = progressCubit;
+      _router = router;
+    } catch (_) {
+      // Router生成に失敗した場合、Cubitはどこからも参照されないまま
+      // 残ってしまうため、ここで確実にcloseする。
+      await progressCubit.close();
+      rethrow;
+    }
+  }
 
   @override
   void dispose() {
@@ -49,22 +79,17 @@ class _KintoreAppState extends State<KintoreApp> {
             title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            home: const Scaffold(body: Center(child: Text('データベースを開けませんでした'))),
+            home: const Scaffold(body: Center(child: Text('アプリを起動できませんでした'))),
           );
         }
-        final progressCubit =
-            _progressCubit ?? WorkoutProgressCubit(_repository);
-        _progressCubit = progressCubit;
-        final router = _router ?? createAppRouter(progressCubit);
-        _router = router;
         return BlocProvider.value(
-          value: progressCubit,
+          value: _progressCubit!,
           child: MaterialApp.router(
             debugShowCheckedModeBanner: false,
             title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            routerConfig: router,
+            routerConfig: _router!,
           ),
         );
       },
