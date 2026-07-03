@@ -3,20 +3,30 @@ import 'package:kintore/src/features/progress/workout_progress.dart';
 import 'package:kintore/src/features/progress/workout_progress_repository.dart';
 
 class WorkoutProgressState {
-  const WorkoutProgressState(this._progressByKey);
+  WorkoutProgressState(this._progressByKey)
+    : _progressByDate = _groupByDate(_progressByKey);
 
   final Map<String, WorkoutProgress> _progressByKey;
+
+  // カレンダー画面が日付単位でまとめて参照するため、生成時に
+  // 日付キーで索引しておく(セルごとの全件走査を避ける)。
+  final Map<String, List<WorkoutProgress>> _progressByDate;
+
+  static Map<String, List<WorkoutProgress>> _groupByDate(
+    Map<String, WorkoutProgress> progressByKey,
+  ) {
+    final grouped = <String, List<WorkoutProgress>>{};
+    for (final progress in progressByKey.values) {
+      grouped.putIfAbsent(progress.dateKey, () => []).add(progress);
+    }
+    return grouped;
+  }
 
   WorkoutProgress? progressFor(DateTime date, int itemIndex) =>
       _progressByKey['${workoutDateKey(date)}:$itemIndex'];
 
-  List<WorkoutProgress> progressForDate(DateTime date) {
-    final dateKey = workoutDateKey(date);
-    return [
-      for (final progress in _progressByKey.values)
-        if (progress.dateKey == dateKey) progress,
-    ];
-  }
+  List<WorkoutProgress> progressForDate(DateTime date) =>
+      _progressByDate[workoutDateKey(date)] ?? const [];
 }
 
 class WorkoutProgressCubit extends Cubit<WorkoutProgressState> {
