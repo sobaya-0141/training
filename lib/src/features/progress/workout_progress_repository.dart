@@ -35,9 +35,16 @@ class WorkoutProgressRepository {
       await database.close();
       return;
     }
+    final rows = await database.query('workout_progress');
+    if (_disposed) {
+      // キャッシュ読み込み中にdisposeされた場合も同様にここで閉じる。
+      // _initializedを立てるのは読み込み完了後なので、dispose()側が
+      // 進行中のqueryのDBを閉じてしまうことはない。
+      await database.close();
+      return;
+    }
     _database = database;
     _initialized = true;
-    final rows = await _database.query('workout_progress');
     for (final row in rows) {
       final progress = _fromRow(row);
       _cache[_key(progress.dateKey, progress.itemIndex)] = progress;
