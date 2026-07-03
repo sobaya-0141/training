@@ -15,9 +15,18 @@ class KintoreApp extends StatefulWidget {
 
 class _KintoreAppState extends State<KintoreApp> {
   final _repository = WorkoutProgressRepository();
-  late final Future<void> _initialization = _repository.initialize();
+  late final Future<void> _initialization = _initialize();
   WorkoutProgressCubit? _progressCubit;
   GoRouter? _router;
+
+  // buildの外で依存関係を組み立てる。buildは何度でも呼ばれうるため、
+  // オブジェクトの生成や代入といった副作用を持たせない。
+  Future<void> _initialize() async {
+    await _repository.initialize();
+    final progressCubit = WorkoutProgressCubit(_repository);
+    _progressCubit = progressCubit;
+    _router = createAppRouter(progressCubit);
+  }
 
   @override
   void dispose() {
@@ -52,19 +61,14 @@ class _KintoreAppState extends State<KintoreApp> {
             home: const Scaffold(body: Center(child: Text('データベースを開けませんでした'))),
           );
         }
-        final progressCubit =
-            _progressCubit ?? WorkoutProgressCubit(_repository);
-        _progressCubit = progressCubit;
-        final router = _router ?? createAppRouter(progressCubit);
-        _router = router;
         return BlocProvider.value(
-          value: progressCubit,
+          value: _progressCubit!,
           child: MaterialApp.router(
             debugShowCheckedModeBanner: false,
             title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            routerConfig: router,
+            routerConfig: _router!,
           ),
         );
       },
