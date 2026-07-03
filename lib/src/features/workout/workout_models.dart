@@ -7,7 +7,6 @@ class WorkoutItem {
     required this.reps,
     required this.sets,
     this.sides = 1,
-    this.countStep = 1,
   }) : kind = WorkoutKind.counter,
        workSeconds = 0,
        restSeconds = 0,
@@ -24,7 +23,6 @@ class WorkoutItem {
        reps = 0,
        sets = 0,
        sides = 1,
-       countStep = 1,
        circuitExercises = const [];
 
   const WorkoutItem.circuit({
@@ -37,8 +35,7 @@ class WorkoutItem {
   }) : kind = WorkoutKind.circuit,
        reps = 0,
        sets = 0,
-       sides = 1,
-       countStep = 1;
+       sides = 1;
 
   final String name;
   final String summary;
@@ -46,7 +43,6 @@ class WorkoutItem {
   final int reps;
   final int sets;
   final int sides;
-  final int countStep;
   final int workSeconds;
   final int restSeconds;
   final int rounds;
