@@ -4,10 +4,7 @@ import 'package:kintore/src/features/navigation/app_routes.dart';
 void main() {
   group('tryParseWorkoutDate', () {
     test('有効な日付キーをパースする', () {
-      expect(
-        tryParseWorkoutDate('2026-06-16'),
-        DateTime(2026, 6, 16),
-      );
+      expect(tryParseWorkoutDate('2026-06-16'), DateTime(2026, 6, 16));
     });
 
     test('不正な日付キーは null を返す', () {

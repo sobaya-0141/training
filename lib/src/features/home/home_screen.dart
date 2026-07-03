@@ -25,11 +25,8 @@ class HomeScreen extends StatelessWidget {
     return SafeArea(
       child: BlocBuilder<WorkoutProgressCubit, WorkoutProgressState>(
         bloc: progressCubit,
-        builder: (context, state) => _HomeContent(
-          date: date,
-          workout: workout,
-          progressState: state,
-        ),
+        builder: (context, state) =>
+            _HomeContent(date: date, workout: workout, progressState: state),
       ),
     );
   }
