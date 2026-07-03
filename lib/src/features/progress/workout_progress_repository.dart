@@ -6,11 +6,19 @@ import 'package:sqflite/sqflite.dart';
 
 class WorkoutProgressRepository {
   late final Database _database;
+  Future<void>? _initialization;
   bool _initialized = false;
   bool _disposed = false;
   final Map<String, WorkoutProgress> _cache = {};
 
-  Future<void> initialize() async {
+  // 複数回(並行含む)呼ばれても初期化が一度しか走らないよう、
+  // 初回のFutureをメモ化して返す(TimerCuePlayerと同じパターン)。
+  Future<void> initialize() => _initialization ??= _initialize();
+
+  Future<void> _initialize() async {
+    if (_disposed) {
+      return;
+    }
     final databasePath = await getDatabasesPath();
     final database = await openDatabase(
       p.join(databasePath, 'kintore.db'),
