@@ -127,4 +127,39 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('start_pause_timer_button')));
     await tester.pump();
   });
+
+  testWidgets('休憩中は次の種目名を表示する', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final cubit = TrainingTimerCubit(
+      workSeconds: 20,
+      restSeconds: 10,
+      roundTitles: const ['種目1 セット 1 / 1', '種目2 セット 1 / 1'],
+      initialState: const TrainingTimerState(
+        phase: TimerPhase.rest,
+        remainingSeconds: 10,
+        roundIndex: 0,
+        totalRounds: 2,
+        title: '種目1 セット 1 / 1',
+      ),
+    );
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(
+          value: cubit,
+          child: const TimerBody(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('種目2 セット 1 / 1'), findsOneWidget);
+    expect(find.text('種目1 セット 1 / 1'), findsNothing);
+  });
 }
