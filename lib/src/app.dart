@@ -24,8 +24,17 @@ class _KintoreAppState extends State<KintoreApp> {
   Future<void> _initialize() async {
     await _repository.initialize();
     final progressCubit = WorkoutProgressCubit(_repository);
-    _progressCubit = progressCubit;
-    _router = createAppRouter(progressCubit);
+    try {
+      final router = createAppRouter(progressCubit);
+      // フィールドへの代入は全体が成功してからまとめて行う。
+      _progressCubit = progressCubit;
+      _router = router;
+    } catch (error) {
+      // Router生成に失敗した場合、Cubitはどこからも参照されないまま
+      // 残ってしまうため、ここで確実にcloseする。
+      await progressCubit.close();
+      rethrow;
+    }
   }
 
   @override
@@ -58,7 +67,7 @@ class _KintoreAppState extends State<KintoreApp> {
             title: 'Kintore',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            home: const Scaffold(body: Center(child: Text('データベースを開けませんでした'))),
+            home: const Scaffold(body: Center(child: Text('アプリを起動できませんでした'))),
           );
         }
         return BlocProvider.value(
