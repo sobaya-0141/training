@@ -7,6 +7,7 @@ lib/
   main.dart
   src/
     app.dart
+    service_locator.dart
     features/
       calendar/
       counter/
@@ -23,7 +24,8 @@ lib/
 
 - UI、状態、永続化は機能単位で近くに置く
 - 複数機能で共有するものだけ `theme` や `utils` に置く
-- アプリ全体の組み立ては `app.dart` に寄せる
+- 依存関係の登録は `service_locator.dart`(get_it)に寄せ、`app.dart` は表示の組み立てに専念する
+- get_it の参照は composition root(main / app / router の登録)に限定し、Widget へはコンストラクタで渡す
 - 永続化や外部依存は repository を介して扱う
 
 ## テンプレートとの差分
